@@ -13,7 +13,7 @@
 </template>
 
 <script setup lang="ts">
-import { reactive, defineProps, defineEmits, defineExpose } from 'vue'
+import { reactive } from 'vue'
 // import { useRoute, useRouter } from "vue-router";
 import useDemoStore from '@/store/demo'
 const demoStore = useDemoStore()
