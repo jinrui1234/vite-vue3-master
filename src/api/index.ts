@@ -126,6 +126,8 @@ function httpErrorStatusHandle(error: any) {
     message = window.navigator.onLine ? '服务端异常！' : '您断网了！'
   }
 
+  console.error(message)
+
   //   Message({
   //     message: message,
   //     type: "error",

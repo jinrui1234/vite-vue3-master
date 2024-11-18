@@ -63,5 +63,14 @@ export default defineConfig({
   server: {
     host: '0.0.0.0',
     port: 8080, //启动端口
+    open: true, // 运行是否自动打开浏览器
+    proxy: {
+      '/api': {
+        target: 'http://47.103.197.242:8098',
+        // target: "http://192.168.1.101:8098",
+        changeOrigin: true,
+        // pathRewrite: {},
+      },
+    },
   },
 })
