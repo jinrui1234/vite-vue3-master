@@ -1,4 +1,5 @@
 import axios from 'axios'
+import useUserStore from '@/store/user'
 
 const service = axios.create({
   baseURL: '',
@@ -30,20 +31,10 @@ service.interceptors.request.use(
       pending.push({ url: `${config.url}&${config.method}`, f: c })
     })
 
-    //判断token是否存在
-    // if (
-    //   !url.includes("/auth/user/login")
-    // ) {
-    //   // const tokenObj = token.getToken();
-    //   if (tokenObj) {
-    //     config.headers["Authorization"] = tokenObj.access_token;
-    //   } else {
-    //     // 去登陆页
-    //     router.replace({
-    //       name: "userLogin",
-    //     });
-    //   }
-    // }
+    const userStore = useUserStore()
+    config.headers['ticket'] = userStore.userInfo?.ticket
+    config.headers['refreshTicket'] = userStore.userInfo?.refresh_ticket
+
     return config
   },
   (error) => {

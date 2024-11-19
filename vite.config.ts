@@ -1,8 +1,10 @@
 import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
 import * as path from 'path'
+
 import eslintPlugin from 'vite-plugin-eslint' //导入包
 import vueJsx from '@vitejs/plugin-vue-jsx'
+
 import { createSvgIconsPlugin } from 'vite-plugin-svg-icons'
 
 import AutoImport from 'unplugin-auto-import/vite'

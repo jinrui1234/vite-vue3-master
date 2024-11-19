@@ -11,7 +11,7 @@
 
 <script setup lang="ts">
 import { reactive } from 'vue'
-import { SOURCE_LIST } from '@/views/collect/config.ts'
+import { SOURCE_LIST } from '../config.ts'
 
 const emit = defineEmits(['selectSource'])
 defineProps({
@@ -36,24 +36,38 @@ const transformToUrl = (icon: string) => {
 
 <style scoped lang="less">
 .source-lits-container {
+  // padding: 12px 20px;
+  // border-radius: 9px;
+  // background-color: #fff;
+  // border: 1px solid #e6e6e6;
+  // box-shadow: 0 3px 16px 0 rgb(0 0 0 / 10%);
+  // display: grid;
+  // grid-template-rows: repeat(5, 30px);
+  // grid-template-columns: repeat(6, 184px);
+  // row-gap: 7px;
+  // column-gap: 10.5px;
+  display: flex;
+  flex-wrap: wrap;
   padding: 12px 20px;
-  border-radius: 9px;
   background-color: #fff;
   border: 1px solid #e6e6e6;
+  border-radius: 9px;
   box-shadow: 0 3px 16px 0 rgb(0 0 0 / 10%);
-  display: grid;
-  grid-template-rows: repeat(5, 30px);
-  grid-template-columns: repeat(6, 184px);
-  row-gap: 7px;
-  column-gap: 10.5px;
 
   .item {
+    // height: 28px;
+    // padding: 2px 6px;
+    // box-sizing: border-box;
+    // cursor: pointer;
+    // display: inline-flex;
+    // align-items: center;
+
+    display: flex;
+    align-items: center;
     height: 28px;
     padding: 2px 6px;
-    box-sizing: border-box;
+    margin-right: 40px;
     cursor: pointer;
-    display: inline-flex;
-    align-items: center;
 
     img {
       width: 22px;

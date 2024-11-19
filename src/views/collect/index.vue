@@ -20,7 +20,7 @@
 import { reactive, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
 import { getHotListAjax } from '@/api/home.ts'
-import { SOURCE_LIST } from './config.ts'
+import { SOURCE_LIST } from '@/views/list/config'
 
 import CollectHead from './component/CollectHead.vue'
 import CollectItem from './component/CollectItem.vue'

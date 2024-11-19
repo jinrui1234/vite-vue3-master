@@ -12,13 +12,35 @@
         <div class="label">{{ el.label }}</div>
       </div>
     </div>
-    <img class="login-icon" :src="transformToUrl('login-icon')" alt="" />
+    <el-tooltip popper-class="tooltip-wrap" effect="light" :disabled="!isUse" :show-arrow="false" placement="right" :offset="18">
+      <!-- 用户信息弹窗 -->
+      <template #content>
+        <div class="info-box">
+          <div class="info-item">
+            <img src="../assets/img/login/name-icon.png" alt="" />
+            <div class="text">{{ account }}</div>
+          </div>
+          <div class="split-line"></div>
+          <div class="info-item out" @click="loginOutClick">
+            <img src="../assets/img/login/login-icon.png" alt="" />
+            <div class="text">退出</div>
+          </div>
+        </div>
+      </template>
+      <img class="login-icon" :src="transformToUrl('login-icon')" alt="" @click="loginClick" />
+    </el-tooltip>
   </div>
 </template>
 
 <script setup lang="ts">
-import { reactive, watch } from 'vue'
+import { reactive, watch, computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
+import { ElMessage } from 'element-plus'
+import { loginOutAjax } from '@/api/auth'
+import useUserStore from '@/store/user'
+
+const userStore = useUserStore()
+
 const toolList = [
   {
     label: '新对话',
@@ -45,9 +67,39 @@ const toolList = [
 const router = useRouter()
 const route = useRoute()
 
+const emit = defineEmits(['login'])
 const dataMap = reactive({
   currentTool: '',
 })
+
+const account = computed(() => {
+  return userStore.userInfo?.name
+})
+
+const isUse = computed(() => {
+  return sessionStorage.getItem('token')
+})
+
+const loginClick = () => {
+  if (!isUse.value) {
+    emit('login')
+  }
+}
+
+const loginOutClick = () => {
+  loginOutAjax()
+    .then((res: any) => {
+      const { code, msg } = res || {}
+      if (code === 0) {
+        userStore.resetUserInfo()
+      } else {
+        ElMessage.error(msg)
+      }
+    })
+    .catch((error) => {
+      console.error(error)
+    })
+}
 
 const transformToUrl = (url: string, label?: string) => {
   const icon = dataMap.currentTool === label ? url + '-s' : url
@@ -143,6 +195,41 @@ watch(
       background: #e7ebf6;
       .label {
         display: block;
+      }
+    }
+  }
+}
+</style>
+<style lang="less">
+.tooltip-wrap {
+  padding: 0px !important;
+  border: none !important;
+  .info-box {
+    border-radius: 6px;
+    background: #ffffff;
+    box-shadow: 0px 3px 16px 0px rgba(0, 0, 0, 0.1);
+    .split-line {
+      border-top: 1px solid #d8d8d8;
+      margin: 10px 0px;
+    }
+    .info-item {
+      padding: 10px 15px 0px;
+      display: flex;
+      align-items: center;
+      &.out {
+        padding: 0px 15px 10px !important;
+        cursor: pointer;
+      }
+      img {
+        width: 15px;
+        // height 15px;
+      }
+      .text {
+        font-family: Microsoft YaHei;
+        font-size: 15px;
+        line-height: 20px;
+        color: #3d3d3d;
+        margin-left: 6px;
       }
     }
   }

@@ -206,7 +206,7 @@ onUnmounted(() => {
 }
 
 .content {
-  padding: 20px 0px 50px;
+  padding: 30px 0px 50px;
   position: relative;
 
   .head {
