@@ -3,7 +3,7 @@ import useUserStore from '@/store/user'
 
 const service = axios.create({
   baseURL: '',
-  timeout: 3000,
+  // timeout: 3000,
   headers: {
     'Content-Type': 'application/json',
   },

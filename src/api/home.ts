@@ -38,7 +38,7 @@ export function getDayTimeAjax(source: string, param: object) {
 }
 
 // 获取文章详情
-export function getNewDetailAjax(source: string, aid: any) {
+export function getDetailAjax(source: string, aid: any) {
   return request({
     url: `/api/hot/v1/detail`,
     method: 'get',
@@ -77,6 +77,14 @@ export function geSearchListAjax(title = '') {
 export function getFileListAjax(word: string) {
   return request({
     url: `/api/query/v2/case_doc/get/doc?title=${word}`,
+    method: 'get',
+  })
+}
+
+// 获取预案详情
+export function getFileDetailAjax(id: string) {
+  return request({
+    url: `/api/case/v2/doc/detail?doc_id=${id}`,
     method: 'get',
   })
 }

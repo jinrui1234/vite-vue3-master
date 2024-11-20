@@ -19,9 +19,11 @@ const typeList = {
   '1': '周报',
   '2': '月报',
 }
+
 const dataMap = reactive({
   currentType: '1',
 })
+
 const typeClick = (id: string) => {
   dataMap.currentType = id
 }

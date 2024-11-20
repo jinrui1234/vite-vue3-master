@@ -5,6 +5,7 @@
     </div>
     <div class="right-wrap">
       <div class="tool-wrap">
+        <!-- 模版列表 -->
         <TypeList />
       </div>
       <el-input
@@ -18,9 +19,9 @@
         <span>提交</span>
       </div>
     </div>
-
+    <!-- 模式列表 -->
     <div class="mode-wrap">
-      <div :class="['mode-item', dataMap.currentType === el.id ? 'active' : '']" v-for="el of modeList" :key="el.id" @click="typeClick(el.id)">
+      <div :class="['mode-item', dataMap.currentMode === el.id ? 'active' : '']" v-for="el of MODE_LIST" :key="el.id" @click="modeClick(el.id)">
         <img :src="transformToUrl(el.icon, el.id)" alt="" />
         <span>{{ el.name }}</span>
       </div>
@@ -30,46 +31,148 @@
 
 <script setup lang="ts">
 import { reactive } from 'vue'
+import { ElMessage } from 'element-plus'
+import { geSearchListAjax } from '@/api/home'
+import { MODE_LIST, MODE_PROP, PROMPT_URL } from '../config'
 import TypeList from './TypeList.vue'
+
+const emit = defineEmits(['submit'])
 defineProps({
-  status: {
-    type: Boolean,
-  },
   stopStatus: {
     type: Boolean,
     default: true,
   },
 })
-const modeList = [
-  {
-    id: '1',
-    name: '前端研判',
-    icon: 'judge-icon',
-  },
-  {
-    id: '2',
-    name: '舆情分析',
-    icon: 'assay-icon',
-  },
-]
-const dataMap = reactive({
-  type: '2',
-  textareaValue: '',
 
-  currentType: '1',
+const dataMap = reactive({
+  textareaValue: '',
+  currentMode: '1', //模式
 })
 
-const typeClick = (id: string) => {
-  dataMap.currentType = id
-}
-
 const transformToUrl = (url: string, id?: string) => {
-  const icon = dataMap.currentType === id ? url + '-s' : url
+  const icon = dataMap.currentMode === id ? url + '-s' : url
   return new URL(`../../../assets/img/report/${icon}.png`, import.meta.url).href
 }
 
+// 模版切换
+const modeClick = (id: string) => {
+  dataMap.currentMode = id
+}
+
 // 提交
-const handleSubmit = () => {}
+const handleSubmit = (value?: string) => {
+  // if (!prop.stopStatus) {
+  //   Message('error', '稍等片刻，等助手回复完毕再提交哦~')
+  //   return
+  // }
+  const text = value || dataMap.textareaValue?.trim()
+  if (!text) {
+    ElMessage.error('请输入您关注的舆情主题或者事件描述')
+    return
+  }
+  if (isLink(text)) {
+    getTitleClick(text)
+  } else {
+    getList(text, '')
+  }
+}
+
+// 链接获取标题
+const getTitleClick = (text: string) => {
+  fetch(PROMPT_URL, {
+    method: 'post',
+    headers: { 'Content-Type': 'text/plain' },
+    body: JSON.stringify({
+      type: 'huoqubiaoti',
+      prompt: text,
+      version: 'V2',
+      yanpan_type: MODE_PROP[dataMap.currentMode],
+    }),
+  })
+    .then((response) => {
+      return response.body
+    })
+    .then((body: any) => {
+      const reader = body.getReader()
+      const decoder = new TextDecoder()
+      let promptText = ''
+      function read() {
+        return reader.read().then(async ({ done, value }) => {
+          if (done) {
+            if (promptText) {
+              getList(promptText, text)
+            } else {
+              ElMessage.error('暂无数据，请重新输入较精确的关键词')
+            }
+            return
+          }
+          try {
+            const data = decoder.decode(value, { stream: true })
+            const { status, topic } = JSON.parse(data || '{}')
+            if (status === '200') {
+              promptText = promptText + topic
+            }
+          } catch (error) {
+            console.error('获取标题失败', error)
+          }
+          return read()
+        })
+      }
+      return read()
+    })
+    .catch((error) => {
+      console.error('获取标题失败', error)
+    })
+}
+
+// 获取关联热点列表
+const getList = async (text: string, url: string) => {
+  let firstItem: any = {}
+  let dataSourceObj: any = {}
+  try {
+    const res: any = await geSearchListAjax(text)
+    const { list, channel_rate } = JSON.parse(JSON.stringify(res?.data || {}))
+    dataSourceObj = channel_rate || {}
+    if (res?.code === 0 && list?.length) {
+      const listCopy = list?.slice(0, 10)
+
+      // 优选选取展示的数据顺序
+      let selectedItem1 = null
+      if (text?.includes('坪山')) {
+        selectedItem1 = listCopy?.find((el: any) => el.source === 'pingshan')
+      }
+      let selectedItem2 = null
+      if (text?.includes('深圳')) {
+        selectedItem2 = listCopy?.find((el: any) => el.source === 'shenzhen')
+      }
+      const selectedItem3 = listCopy?.find((el: any) => el.source === 'toutiao')
+      firstItem = selectedItem1 || selectedItem2 || selectedItem3 || list?.[0] || {}
+    } else {
+      ElMessage.error('暂无数据，请重新输入较精确的关键词')
+    }
+  } catch (error) {
+    console.error('获取列表失败', error)
+  }
+
+  const { source, aid, title } = firstItem || {}
+  if (!source || !aid) return
+  emit('submit', {
+    source,
+    aid,
+    title: title,
+    keyWord: text,
+    url,
+    selectType: dataMap.currentMode,
+    channelRate: dataSourceObj,
+  })
+  dataMap.textareaValue = ''
+}
+
+// 判断是否是链接
+const isLink = (str: string) => {
+  const pattern = /^(https?:\/\/)[^\s/$.?#].[^\s]*$/
+  return pattern.test(str)
+}
 
 defineExpose({
   handleSubmit,
@@ -88,11 +191,13 @@ defineExpose({
 }
 
 .left-wrap {
-  display: flex;
-  justify-content: center;
   width: 60px;
   padding-top: 30px;
   background: #f4f4f5;
+  border-top-left-radius: 12px;
+  border-bottom-left-radius: 12px;
+  display: flex;
+  justify-content: center;
 
   img {
     width: 48px;

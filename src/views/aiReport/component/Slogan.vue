@@ -13,6 +13,7 @@
   flex-direction: column;
   align-items: center;
   margin-bottom: 80px;
+  padding-top: 150px;
 }
 
 .main-title {

@@ -1,6 +1,7 @@
 <template>
   <div class="left-nav-container">
-    <img class="logo-icon" :src="transformToUrl('logo-icon')" alt="" />
+    <img class="logo-icon" src="../assets/img/report/logo-icon.png" alt="" />
+
     <div class="tool-wrap">
       <div
         v-for="el of toolList"
@@ -12,22 +13,22 @@
         <div class="label">{{ el.label }}</div>
       </div>
     </div>
+
     <el-tooltip popper-class="tooltip-wrap" effect="light" :disabled="!isUse" :show-arrow="false" placement="right" :offset="18">
       <!-- 用户信息弹窗 -->
       <template #content>
         <div class="info-box">
-          <div class="info-item">
+          <div class="info-item" @click="loginClick">
             <img src="../assets/img/login/name-icon.png" alt="" />
-            <div class="text">{{ account }}</div>
+            <div class="text">{{ isUse ? account : '登陆' }}</div>
           </div>
-          <div class="split-line"></div>
-          <div class="info-item out" @click="loginOutClick">
+          <div v-if="isUse" class="info-item out" @click="loginOutClick">
             <img src="../assets/img/login/login-icon.png" alt="" />
             <div class="text">退出</div>
           </div>
         </div>
       </template>
-      <img class="login-icon" :src="transformToUrl('login-icon')" alt="" @click="loginClick" />
+      <img class="login-icon" src="../assets/img/report/login-icon.png " alt="" />
     </el-tooltip>
   </div>
 </template>
@@ -36,6 +37,7 @@
 import { reactive, watch, computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { ElMessage } from 'element-plus'
+import eventBus from '@/utils/mitt'
 import { loginOutAjax } from '@/api/auth'
 import useUserStore from '@/store/user'
 
@@ -107,6 +109,10 @@ const transformToUrl = (url: string, label?: string) => {
 }
 
 const selectTool = (name: string, label: string) => {
+  if (name === 'AiReport' && route.name === 'AiReport') {
+    eventBus.emit('reportReset')
+    return
+  }
   router.push({
     name: name,
     query: {
@@ -182,10 +188,11 @@ watch(
       background: linear-gradient(116deg, #9482f8 14%, #4277f3 88%);
       font-family: Microsoft YaHei;
       display: none;
+      white-space: nowrap;
 
       position: absolute;
       top: 50%;
-      right: -120px; // ??
+      left: 66px;
       transform: translateY(-50%);
     }
     &.active {
@@ -208,17 +215,15 @@ watch(
     border-radius: 6px;
     background: #ffffff;
     box-shadow: 0px 3px 16px 0px rgba(0, 0, 0, 0.1);
-    .split-line {
-      border-top: 1px solid #d8d8d8;
-      margin: 10px 0px;
-    }
     .info-item {
       padding: 10px 15px 0px;
       display: flex;
       align-items: center;
+      cursor: pointer;
       &.out {
-        padding: 0px 15px 10px !important;
-        cursor: pointer;
+        border-top: 1px solid #d8d8d8;
+        margin-top: 10px;
+        padding: 10px 15px 10px !important;
       }
       img {
         width: 15px;
