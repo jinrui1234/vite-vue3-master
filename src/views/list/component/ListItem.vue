@@ -2,7 +2,7 @@
   <div :class="['list-item', isReportTab() ? 'padding-2' : '']" v-for="(item, index) in list" :key="index">
     <span class="list-index">{{ num(index) }}</span>
 
-    <span class="list-title" @click="jumpPage('Article', item, index)">
+    <span class="list-title" @click="jumpPage('Detail', item, index)">
       {{ item.title }}
     </span>
 
@@ -23,8 +23,10 @@
 import { computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { bigNumberTransform } from '@/utils/util'
+
 const router = useRouter()
 const { tab } = useRoute()?.query || {}
+
 const props = defineProps({
   list: {
     type: Array,
@@ -52,14 +54,10 @@ const isReportTab = () => {
 
 //跳转详情页
 const jumpPage = (name: string, item: any, index: number) => {
-  const { list_id, id, aid } = item || {}
   const page = router.resolve({
     name: name,
-    params: {
-      id: aid ?? list_id ?? id,
-    },
     query: {
-      aid: aid,
+      aid: item?.aid,
       source: props.sourceId,
       tab: tab,
       rank: index + 1,

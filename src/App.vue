@@ -6,6 +6,9 @@
     <!-- 登陆 -->
     <Login :visible="dataMap.visible" @close="dataMap.visible = false" />
 
+    <!-- 备案号 -->
+    <FooterBar />
+
     <!-- key 防止前后跳转同一个路由，页面不刷新 -->
     <RouterView :key="route.fullPath" />
   </div>
@@ -20,6 +23,7 @@ import useUserStore from '@/store/user'
 
 import LeftNav from '@/component/LeftNav.vue'
 import Login from '@/views/login/index.vue'
+import FooterBar from '@/component/FooterBar.vue'
 
 const userStore = useUserStore()
 let webWorker = new Worker(new URL('./worker.js', import.meta.url), {

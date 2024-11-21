@@ -72,17 +72,17 @@ const isHistoryTab = () => {
   return tab === '历史热点'
 }
 
+//取消
+const handleClose = () => {
+  dataMap.visible = false
+}
+
 //提交
 const handleSubmit = (mode: string, params: any, time: string) => {
   dataMap.visible = false
   dataMap.currentTime = time
   dataMap.page = 1
   init(mode, params)
-}
-
-//取消
-const handleClose = () => {
-  dataMap.visible = false
 }
 
 //点击历史btn
@@ -199,16 +199,17 @@ onUnmounted(() => {
 .list-container {
   width: 100%;
   height: 100%;
-  padding-left: calc(50% - 600px);
-  padding-right: calc(50% - 600px);
+  padding-left: calc(50% - 580px);
+  padding-right: calc(50% - 580px);
+  padding-top: 40px;
+  padding-bottom: 60px;
   box-sizing: border-box;
   overflow-y: overlay;
+  font-family: 'Microsoft YaHei', sans-serif;
 }
 
 .content {
-  padding: 30px 0px 50px;
-  position: relative;
-
+  width: 100%;
   .head {
     display: flex;
     justify-content: space-between;

@@ -192,7 +192,7 @@ defineExpose({
 
 .left-wrap {
   width: 60px;
-  padding-top: 30px;
+  padding-top: 40px;
   background: #f4f4f5;
   border-top-left-radius: 12px;
   border-bottom-left-radius: 12px;

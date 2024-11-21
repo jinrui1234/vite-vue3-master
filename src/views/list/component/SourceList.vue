@@ -1,5 +1,5 @@
 <template>
-  <div class="source-lits-container">
+  <div class="source-list-wrap">
     <div v-for="(el, index) in data.list" :key="index">
       <div :class="['item', el.source === source ? 'active' : '']" @click="selectSourceTab(el.source)">
         <img :src="transformToUrl(el.icon)" alt="" />
@@ -20,7 +20,6 @@ defineProps({
     default: '',
   },
 })
-
 const data = reactive({
   list: SOURCE_LIST,
 })
@@ -35,7 +34,7 @@ const transformToUrl = (icon: string) => {
 </script>
 
 <style scoped lang="less">
-.source-lits-container {
+.source-list-wrap {
   // padding: 12px 20px;
   // border-radius: 9px;
   // background-color: #fff;

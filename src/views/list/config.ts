@@ -4,7 +4,7 @@ export const TIME_TYPE = {
   hour: 'min',
 }
 
-export const ARR_TYPE = {
+export const TIME_PROP = {
   min: 60,
   hour: 24,
 }

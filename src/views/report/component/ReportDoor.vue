@@ -41,7 +41,7 @@
   .spite {
     position: absolute;
     top: 50%;
-    width: 250px;
+    width: 295px;
     height: 2px;
     background: #ed0000;
     transform: translateY(-50%);

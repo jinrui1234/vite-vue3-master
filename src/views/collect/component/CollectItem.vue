@@ -11,18 +11,16 @@ const { query } = useRoute() || {}
 const prop = defineProps({
   list: {
     type: Array,
-    default: () => [],
   },
   source: {
     type: String,
-    default: '',
   },
 })
 
 //跳转详情页
 const goArticle = (index: number, aid: number) => {
   const page = router.resolve({
-    name: 'Article',
+    name: 'Detail',
     params: {
       id: aid,
     },

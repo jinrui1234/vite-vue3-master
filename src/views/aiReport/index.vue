@@ -1,15 +1,12 @@
+<!-- eslint-disable vue/no-lone-template -->
 <template>
   <div class="ai-report-container">
     <!-- 报告页封面 -->
-    <div class="report-content">
-      <template v-if="!dataMap.keyWord">
-        <Slogan />
-        <Search ref="searchRef" @submit="onSubmit" />
-      </template>
+    <div class="content">
+      <Slogan v-show="!dataMap.keyWord" />
+      <Search ref="searchRef" @submit="onSubmit" v-show="!dataMap.keyWord" />
 
-      <template v-else>
-        <Report ref="reportRef" />
-      </template>
+      <Report ref="reportRef" v-if="dataMap.keyWord" />
     </div>
 
     <template v-if="dataMap.keyWord">
@@ -36,6 +33,7 @@ import { reactive, ref, nextTick, computed, watch, onMounted, onUnmounted } from
 import eventBus from '@/utils/mitt'
 import { ElMessage } from 'element-plus'
 // import { getCountAjax, resetCountAjax } from '@/api/auth'
+
 import Slogan from './component/Slogan.vue'
 import Search from './component/Search.vue'
 import Report from './component/Report.vue'
@@ -142,7 +140,7 @@ const wheelEvent = (e: any, node: any) => {
 }
 
 watch(loadingStatus, (value) => {
-  const node = document.getElementsByClassName('report-content')?.[0]
+  const node = document.getElementsByClassName('content')?.[0]
   if (value) {
     addIntervalClick(node)
     // 添加鼠标事件
@@ -159,6 +157,15 @@ watch(loadingStatus, (value) => {
   }
 })
 
+watch(
+  () => dataMap.keyWord,
+  (value) => {
+    const node = document.getElementsByClassName('footer-container')?.[0]
+    if (node) node.style.display = value ? 'none' : 'flex'
+  },
+  { immediate: true }
+)
+
 onMounted(() => {
   eventBus.on('reportReset', reportResetClick)
 })
@@ -171,14 +178,15 @@ onUnmounted(() => {
 .ai-report-container {
   width: 100%;
   height: 100%;
-  padding-left: calc(50% - 495px);
-  padding-right: calc(50% - 495px);
-  padding-top: 25px;
+  padding-left: calc(50% - 500px);
+  padding-right: calc(50% - 500px);
+  padding-top: 20px;
   padding-bottom: 10px;
   box-sizing: border-box;
+  font-family: 'Microsoft YaHei', sans-serif;
 }
 
-.report-content {
+.content {
   width: 100%;
   height: calc(100% - 30px);
   border-radius: 12px;
@@ -220,7 +228,7 @@ onUnmounted(() => {
 .loading-wrap {
   position: absolute;
   top: 42px;
-  left: calc(50% - 495px - 40px);
+  left: calc(50% - 500px - 40px);
   img {
     width: 32px;
     height: 32px;

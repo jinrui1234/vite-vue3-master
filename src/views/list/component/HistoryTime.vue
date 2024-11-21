@@ -28,7 +28,7 @@
 <script setup lang="ts">
 import { reactive, watch, computed } from 'vue'
 import { ElMessage } from 'element-plus'
-import { TIME_TYPE, ARR_TYPE } from '../config.ts'
+import { TIME_TYPE, TIME_PROP } from '../config.ts'
 import { getDayTimeAjax } from '@/api/home'
 
 import TimeItem from './TimeItem.vue'
@@ -57,19 +57,19 @@ const dataMap = reactive({
   timeId: 0,
 })
 
-// breadList是否已经存在当前值
-const isExistence = computed(() => {
-  return (name: string) => {
-    return dataMap.breadList.some((el: any) => el.name === name)
-  }
-})
-
 watch(
   () => props.visible,
   (value) => {
     if (value) getTime()
   }
 )
+
+// breadList是否已经存在当前值
+const isExistence = computed(() => {
+  return (name: string) => {
+    return dataMap.breadList.some((el: any) => el.name === name)
+  }
+})
 
 // 点击年份选择
 const clickYear = (name: string, id: string) => {
@@ -135,7 +135,7 @@ const getTime = (type?: string) => {
               }
             })
           } else {
-            const newArr = new Array(ARR_TYPE[type]).fill(0)
+            const newArr = new Array(TIME_PROP[type]).fill(0)
             dataMap.list = newArr?.map((el: number, index: number) => {
               return {
                 name: index.toString(),
@@ -295,7 +295,7 @@ const reset = () => {
 
     .el-dialog__title {
       font-size: 14px;
-      font-weight: bold;
+      font-weight: 500;
       line-height: 17px;
       color: #0d0d0d;
     }

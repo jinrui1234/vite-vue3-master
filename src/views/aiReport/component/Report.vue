@@ -112,7 +112,7 @@ import EventEffect from './EventEffect.vue'
 import ChartItem from './ChartItem.vue'
 import Empty from './Empty.vue'
 
-watermark('reportWrap')
+watermark()
 let webWorker = new Worker(new URL('../worker.js', import.meta.url), {
   type: 'module',
 })

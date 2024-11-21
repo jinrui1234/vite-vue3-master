@@ -61,7 +61,6 @@ export const SOURCE_ZH = {
   pengpai: '澎湃',
   toutiao: '头条',
   anliku: '案例库',
-
   chudian: '触电新闻app',
   dute: '读特新闻',
   jingbao: '晶报数字报',
@@ -78,4 +77,12 @@ export const SOURCE_ZH = {
   ysz: '壹深圳',
   rmbkps: '人民网必看(坪山)',
   rmbksz: '人民网必看(深圳)',
+  bili: 'B站',
+  fenghuang: '凤凰新闻',
+  hk: '好看视频',
+  jinyang: '金羊网',
+  sohu: '搜狐',
+  tieba: '贴吧',
+  wangyi: '网易新闻',
+  xigua: '西瓜视频',
 }

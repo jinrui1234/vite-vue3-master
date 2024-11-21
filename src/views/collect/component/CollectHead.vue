@@ -14,15 +14,12 @@ const router = useRouter()
 const prop = defineProps({
   icon: {
     type: String,
-    default: '',
   },
   source: {
     type: String,
-    default: '',
   },
   title: {
     type: String,
-    default: '',
   },
 })
 

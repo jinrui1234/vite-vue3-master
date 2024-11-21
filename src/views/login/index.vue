@@ -64,14 +64,17 @@ const loginRules = {
   password: [{ required: true, trigger: 'change', message: '请输入密码' }],
 }
 
+// 密码显隐切换
 const passwordShowClick = () => {
   dataMap.passwordShow = !dataMap.passwordShow
 }
 
+// 关键
 const handleClose = () => {
   emit('close')
 }
 
+// 登陆
 const submitHandle = () => {
   loginFormRef.value?.validate((valid: boolean) => {
     if (valid) {

@@ -58,15 +58,17 @@ onMounted(() => {
 .collect-container {
   width: 100%;
   height: 100%;
-  padding-left: calc(50% - 600px);
-  padding-right: calc(50% - 600px);
+  padding-left: calc(50% - 580px);
+  padding-right: calc(50% - 580px);
+  padding-top: 40px;
+  padding-bottom: 60px;
   box-sizing: border-box;
   overflow-y: overlay;
+  font-family: 'Microsoft YaHei', sans-serif;
 }
 
 .content {
   width: 100%;
-  padding: 60px 0px 50px;
 
   .hot-item {
     margin-bottom: 25px;

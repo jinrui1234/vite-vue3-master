@@ -1,5 +1,5 @@
 <template>
-  <div class="time-container">
+  <div class="time-wrap">
     <div :class="['tab-item', el.id === timeId ? 'active' : '']" v-for="el of list" :key="el.id" @click="handleClick(el)">
       {{ el.name }}
     </div>
@@ -24,7 +24,7 @@ const handleClick = (el: any) => {
 </script>
 
 <style scoped lang="less">
-.time-container {
+.time-wrap {
   position: relative;
   left: 50%;
   display: inline-flex;

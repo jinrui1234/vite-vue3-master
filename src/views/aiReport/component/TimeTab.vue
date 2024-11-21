@@ -28,6 +28,7 @@ const timeList = [
   },
 ]
 
+const emit = defineEmits(['tabChange'])
 defineProps({
   id: {
     type: String,
@@ -35,7 +36,6 @@ defineProps({
   },
 })
 
-const emit = defineEmits(['tabChange'])
 const handleClickTab = (id: any) => {
   emit('tabChange', id)
 }
