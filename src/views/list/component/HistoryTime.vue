@@ -27,7 +27,7 @@
 </template>
 <script setup lang="ts">
 import { reactive, watch, computed } from 'vue'
-import { ElMessage } from 'element-plus'
+import { Message } from '@/utils/message'
 import { TIME_TYPE, TIME_PROP } from '../config.ts'
 import { getDayTimeAjax } from '@/api/home'
 
@@ -147,11 +147,11 @@ const getTime = (type?: string) => {
           }
         }
       } else {
-        ElMessage.error(msg)
+        Message('error', msg)
       }
     })
     .catch((error) => {
-      ElMessage.error(error)
+      Message('error', error)
     })
 }
 

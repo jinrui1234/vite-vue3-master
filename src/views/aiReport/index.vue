@@ -29,9 +29,9 @@
 </template>
 
 <script setup lang="ts">
-import { reactive, ref, nextTick, computed, watch, onMounted, onUnmounted } from 'vue'
+import { reactive, ref, nextTick, computed, watch, onMounted, onBeforeUnmount } from 'vue'
 import eventBus from '@/utils/mitt'
-import { ElMessage } from 'element-plus'
+import { Message } from '@/utils/message'
 // import { getCountAjax, resetCountAjax } from '@/api/auth'
 
 import Slogan from './component/Slogan.vue'
@@ -67,7 +67,7 @@ const onSubmit = (param: any) => {
   //     const { code, data, msg } = res || {}
   //     if (code === 0) {
   //       if (!data?.free_total) {
-  //         ElMessage.error('暂无使用次数，请充值')
+  //          Message('error', "暂无使用次数，请充值")
   //         return
   //       }
   //       dataMap.keyWord = param.keyWord
@@ -76,11 +76,11 @@ const onSubmit = (param: any) => {
   //         reportRef.value?.searchClick(param)
   //       })
   //     } else {
-  //       ElMessage.error(msg)
+  //  Message('error', msg)
   //     }
   //   })
   //   .catch((error) => {
-  //     ElMessage.error(error)
+  //     Message('error', error)
   //   })
 }
 
@@ -90,18 +90,18 @@ const onSubmit = (param: any) => {
 //       const { code, msg } = res || {}
 //       if (code === 0) {
 //       } else {
-//         ElMessage.error(msg)
+//         Message('error', msg)
 //       }
 //     })
 //     .catch((error) => {
-//       ElMessage.error(error)
+//       Message('error', error)
 //     })
 // }
 
 // 开启新对话
-const reportResetClick = () => {
+const reportStopClick = () => {
   if (dataMap.keyWord && !stopStatus.value) {
-    ElMessage.error('稍等片刻，等助手回复完毕再开启新对话哦~')
+    Message('error', '稍等片刻，等助手回复完毕再开启新对话哦~')
     return
   }
   dataMap.keyWord = ''
@@ -167,10 +167,11 @@ watch(
 )
 
 onMounted(() => {
-  eventBus.on('reportReset', reportResetClick)
+  eventBus.on('reportStop', reportStopClick)
 })
-onUnmounted(() => {
-  eventBus.off('reportReset', reportResetClick)
+onBeforeUnmount(() => {
+  stopBtnClick()
+  eventBus.off('reportStop', reportStopClick)
 })
 </script>
 

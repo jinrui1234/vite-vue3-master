@@ -31,7 +31,7 @@
 
 <script setup lang="ts">
 import { reactive } from 'vue'
-import { ElMessage } from 'element-plus'
+import { Message } from '@/utils/message'
 import { geSearchListAjax } from '@/api/home'
 import { MODE_LIST, MODE_PROP, PROMPT_URL } from '../config'
 import TypeList from './TypeList.vue'
@@ -67,7 +67,7 @@ const handleSubmit = (value?: string) => {
   // }
   const text = value || dataMap.textareaValue?.trim()
   if (!text) {
-    ElMessage.error('请输入您关注的舆情主题或者事件描述')
+    Message('warning', '请输入您关注的舆情主题或者事件描述')
     return
   }
   if (isLink(text)) {
@@ -102,7 +102,7 @@ const getTitleClick = (text: string) => {
             if (promptText) {
               getList(promptText, text)
             } else {
-              ElMessage.error('暂无数据，请重新输入较精确的关键词')
+              Message('warning', '暂无数据，请重新输入较精确的关键词')
             }
             return
           }
@@ -129,13 +129,17 @@ const getTitleClick = (text: string) => {
 const getList = async (text: string, url: string) => {
   let firstItem: any = {}
   let dataSourceObj: any = {}
+  let searchList: any = []
   try {
     const res: any = await geSearchListAjax(text)
     const { list, channel_rate } = JSON.parse(JSON.stringify(res?.data || {}))
     dataSourceObj = channel_rate || {}
     if (res?.code === 0 && list?.length) {
+      list.forEach((el: any, index: number) => {
+        el.pos = index + 1
+      })
+      searchList = list ?? []
       const listCopy = list?.slice(0, 10)
-
       // 优选选取展示的数据顺序
       let selectedItem1 = null
       if (text?.includes('坪山')) {
@@ -148,13 +152,13 @@ const getList = async (text: string, url: string) => {
       const selectedItem3 = listCopy?.find((el: any) => el.source === 'toutiao')
       firstItem = selectedItem1 || selectedItem2 || selectedItem3 || list?.[0] || {}
     } else {
-      ElMessage.error('暂无数据，请重新输入较精确的关键词')
+      Message('warning', '暂无数据，请重新输入较精确的关键词')
     }
   } catch (error) {
     console.error('获取列表失败', error)
   }
 
-  const { source, aid, title } = firstItem || {}
+  const { source, aid, title, pos } = firstItem || {}
   if (!source || !aid) return
   emit('submit', {
     source,
@@ -162,6 +166,8 @@ const getList = async (text: string, url: string) => {
     title: title,
     keyWord: text,
     url,
+    pos,
+    list: searchList,
     selectType: dataMap.currentMode,
     channelRate: dataSourceObj,
   })

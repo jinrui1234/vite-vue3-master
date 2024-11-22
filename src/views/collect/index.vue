@@ -18,7 +18,7 @@
 
 <script setup lang="ts">
 import { reactive, onMounted } from 'vue'
-import { ElMessage } from 'element-plus'
+import { Message } from '@/utils/message'
 import { getHotListAjax } from '@/api/home.ts'
 import { SOURCE_LIST } from '@/views/list/config'
 
@@ -41,10 +41,10 @@ const getList = async () => {
       if (code === 0) {
         el.list = data.list
       } else {
-        ElMessage.error('网络错误，请稍后重试')
+        Message('error', '网络错误，请稍后重试')
       }
     } catch (error) {
-      ElMessage.error('网络错误，请稍后重试')
+      Message('error', '网络错误，请稍后重试')
     }
   }
   dataMap.loading = false

@@ -5,9 +5,8 @@
 </template>
 
 <script setup lang="ts">
-import { useRouter, useRoute } from 'vue-router'
+import { useRouter } from 'vue-router'
 const router = useRouter()
-const { query } = useRoute() || {}
 const prop = defineProps({
   list: {
     type: Array,
@@ -21,14 +20,11 @@ const prop = defineProps({
 const goArticle = (index: number, aid: number) => {
   const page = router.resolve({
     name: 'Detail',
-    params: {
-      id: aid,
-    },
     query: {
       source: prop.source,
       aid: aid,
-      tab: query?.tab,
-      rank: index + 1,
+      tab: '实时热点',
+      pos: index + 1,
     },
   })
   window.open(page.href, '_blank')

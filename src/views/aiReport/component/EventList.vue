@@ -55,7 +55,7 @@
 <script setup lang="ts">
 import { computed, reactive } from 'vue'
 import { useRouter } from 'vue-router'
-import { ElMessage } from 'element-plus'
+import { Message } from '@/utils/message'
 import { SOURCE_ZH } from '../config'
 import { getFileDetailAjax } from '@/api/home'
 
@@ -113,17 +113,14 @@ const open = (item: any) => {
     return
   }
   const { case_id, aid, source, pos } = item || {}
-  const name = isCaseBool.value ? 'Case' : 'Article'
+  const name = isCaseBool.value ? 'Case' : 'Detail'
   const page = router.resolve({
     name: name,
-    params: {
-      id: aid ?? case_id,
-    },
     query: {
       aid: aid ?? case_id,
       source: source,
       tab: '搜索',
-      rank: pos || -999,
+      pos: pos ?? -999,
     },
   })
   window.open(page.href, '_blank')
@@ -138,7 +135,7 @@ const openDetailClick = ({ doc_id }: any) => {
         dataMap.content = data?.content
         dataMap.visible = true
       } else {
-        ElMessage.error(msg)
+        Message('error', msg)
       }
     })
     .catch((error) => {

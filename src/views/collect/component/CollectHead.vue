@@ -1,5 +1,5 @@
 <template>
-  <div class="head-container">
+  <div class="head-wrap">
     <div class="head-left">
       <img :src="transformToUrl()" />
       <div class="title">{{ title }}</div>
@@ -41,7 +41,7 @@ const jumpPage = () => {
 </script>
 
 <style lang="less" scoped>
-.head-container {
+.head-wrap {
   display: flex;
   align-items: center;
   justify-content: space-between;

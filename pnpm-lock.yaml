@@ -47,9 +47,6 @@ importers:
       vue-router:
         specifier: ^4.2.4
         version: 4.2.4(vue@3.3.4)
-      watermark-lite:
-        specifier: ^0.1.1
-        version: 0.1.1
     devDependencies:
       '@types/lodash-es':
         specifier: ^4.17.9
@@ -2601,10 +2598,6 @@ packages:
   text-table@0.2.0:
     resolution: {integrity: sha512-N+8UisAXDGk8PFXP4HAzVR9nbfmVJ3zYLAWiTIoqC5v5isinhr+r5uaO8+7r3BMfuNIufIsA7RdpVgacC2cSpw==}
 
-  throttle-debounce@5.0.2:
-    resolution: {integrity: sha512-B71/4oyj61iNH0KeCamLuE2rmKuTO5byTOSVwECM5FA7TiAiAW+UqTKZ9ERueC4qvgSttUhdmq1mXC3kJqGX7A==}
-    engines: {node: '>=12.22'}
-
   titleize@3.0.0:
     resolution: {integrity: sha512-KxVu8EYHDPBdUYdKZdKtU2aj2XfEx9AfjXxE/Aj0vT06w2icA09Vus1rh6eSu1y01akYg6BjIK/hxyLJINoMLQ==}
     engines: {node: '>=12'}
@@ -2858,9 +2851,6 @@ packages:
 
   vue@3.3.4:
     resolution: {integrity: sha512-VTyEYn3yvIeY1Py0WaYGZsXnz3y5UnGi62GjVEqvEGPl6nxbOrCXbVOTQWBEJUqAyTUk2uJ5JLVnYJ6ZzGbrSw==}
-
-  watermark-lite@0.1.1:
-    resolution: {integrity: sha512-Y00ikNqx+rc6olGi0dQzeXa+J+RMFmr0LLkCBGAhgJN/2ZkfmlLjxMRtYpM4MJN6Z2H0WcIAG67QUFL0zRr8rQ==}
 
   webpack-virtual-modules@0.6.2:
     resolution: {integrity: sha512-66/V2i5hQanC51vBQKPH4aI8NMAcBW59FVBs+rC7eGHupMyfn34q7rZIE+ETlJ+XTevqfUhVVBgSUNSW2flEUQ==}
@@ -5670,8 +5660,6 @@ snapshots:
 
   text-table@0.2.0: {}
 
-  throttle-debounce@5.0.2: {}
-
   titleize@3.0.0: {}
 
   to-object-path@0.3.0:
@@ -5966,10 +5954,6 @@ snapshots:
       '@vue/runtime-dom': 3.3.4
       '@vue/server-renderer': 3.3.4(vue@3.3.4)
       '@vue/shared': 3.3.4
-
-  watermark-lite@0.1.1:
-    dependencies:
-      throttle-debounce: 5.0.2
 
   webpack-virtual-modules@0.6.2: {}
 

@@ -17,7 +17,8 @@
 <script setup lang="ts">
 import { reactive, onMounted, onBeforeUnmount } from 'vue'
 import { useRoute } from 'vue-router'
-import { ElMessage } from 'element-plus'
+
+import { Message } from '@/utils/message'
 import { refreshTicketAjax } from '@/api/auth'
 import useUserStore from '@/store/user'
 
@@ -35,6 +36,7 @@ const dataMap = reactive({
   visible: false,
 })
 
+// 25分钟，刷新一次token
 const resetTokenClick = () => {
   refreshTicketAjax()
     .then((res: any) => {
@@ -42,11 +44,11 @@ const resetTokenClick = () => {
       if (code === 0) {
         userStore.setTicket(data.new_refresh_ticket)
       } else {
-        ElMessage.error(msg)
+        Message('error', msg)
       }
     })
     .catch((error) => {
-      ElMessage.error(error)
+      Message('error', error)
     })
 }
 
@@ -71,7 +73,7 @@ onBeforeUnmount(() => {
   height: 100%;
   min-width: 1440px;
   background: #d2e9fe;
-  background-image: url('./assets/img/report/bg-icon.png');
+  background-image: url('./assets/img/bg-icon.png');
   background-repeat: no-repeat;
   background-size: 100% 599px;
 }

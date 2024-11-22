@@ -48,6 +48,7 @@
       <HotWrap :hot="dataMap.hot_value" />
       <TimeTab style="margin-bottom: 20px" :id="dataMap.timeId" @tab-change="timeTabClick" />
     </template>
+
     <template v-if="dataMap.eventTrend?.length">
       <ChartItem class="chart-item" v-for="el of dataMap.eventTrend" :key="el.id" :name="el.name" :id="el.id" :x="el.x" :y="el.y" :y2="el.y2" />
     </template>
@@ -93,12 +94,12 @@
 </template>
 
 <script setup lang="ts">
-import { reactive, onUnmounted } from 'vue'
+import { reactive, onMounted, onBeforeUnmount } from 'vue'
 import { marked } from 'marked'
-import { watermark } from '@/utils/waterMark'
+import { useWatermark } from '@/utils/waterMark'
 import { PROMPT_PROP, EFFECT_PROP, MODE_PROP, ECHART_LABEL, SOURCE_ZH, PROMPT_URL } from './../config'
 import { bigNumberTransform, formatData, minTransformHour, isExistence } from '@/utils/util'
-import { getDetailAjax, getReportResultAjax, getEchartDataAjax, geSearchListAjax, getCaseListAjax, getFileListAjax } from '@/api/home'
+import { getDetailAjax, getReportResultAjax, getEchartDataAjax, getCaseListAjax, getFileListAjax } from '@/api/home'
 
 import ReportDoor from './ReportDoor.vue'
 import LabelWrap from './LabelWrap.vue'
@@ -112,7 +113,7 @@ import EventEffect from './EventEffect.vue'
 import ChartItem from './ChartItem.vue'
 import Empty from './Empty.vue'
 
-watermark()
+const { setWatermark, clear } = useWatermark()
 let webWorker = new Worker(new URL('../worker.js', import.meta.url), {
   type: 'module',
 })
@@ -193,7 +194,7 @@ const reset = () => {
 // 提交
 const searchClick = async (param: any) => {
   reset()
-  const { source, aid, selectType, keyWord, url, channelRate } = param
+  const { source, aid, pos, selectType, keyWord, url, channelRate, list } = param
   dataMap.keyWord = keyWord
   dataMap.source = source
   dataMap.selectType = selectType
@@ -213,7 +214,7 @@ const searchClick = async (param: any) => {
 
     await getReportResultClick(source, aid)
 
-    await getArticleDateClick(source, aid)
+    await getArticleDateClick(source, aid, pos)
 
     setChartDateClick(source)
 
@@ -227,7 +228,7 @@ const searchClick = async (param: any) => {
     dataMap.fileList = fileList
     dataMap.fileListShow = true
 
-    const { searchList, searchContent } = await getSearchListClick(keyWord)
+    const { searchList, searchContent } = getSearchListClick(list)
     await getReportPrompt('guanlianredian', keyWord, searchContent, url)
     dataMap.searchList = searchList
 
@@ -278,16 +279,19 @@ const setChartDateClick = async (source: string) => {
       })
     }
   })
+
   // 把热度值图表放到前面
   const index = arr.findIndex((el: any) => el.name === '热度值')
   if (index !== -1) {
     const Item = arr.splice(index, 1)[0]
     arr.unshift(Item)
   }
+
   // 当数据源为头条时,去除互动量数据
   if (source === 'toutiao') {
     arr = arr?.filter((el: any) => el.name !== '互动量')
   }
+
   dataMap.eventTrend = arr
 }
 
@@ -312,8 +316,13 @@ const getReportResultClick = async (source: string, aid: string) => {
   }
 }
 
+// 特殊源(特殊源无最高位次，用当前列表位次代替)
+const isSpecialSource = (source: string) => {
+  return ['weibo', 'zhihu', 'baidu'].includes(source)
+}
+
 // 获取文章详情（数据汇总）
-const getArticleDateClick = async (source, aid) => {
+const getArticleDateClick = async (source, aid, pos) => {
   try {
     const res: any = await getDetailAjax(source, aid)
     const { code, data } = res || {}
@@ -321,10 +330,11 @@ const getArticleDateClick = async (source, aid) => {
       const { duration, read, interact, comment, origin, rank, collect, share, hot_value } = (data || {}) as any
       const arr: any = []
       dataMap.hot_value = getHot(hot_value)
-      if (rank) {
+
+      if (rank || isSpecialSource(source)) {
         arr.push({
-          name: `${SOURCE_ZH[source]}热搜榜最高位置`,
-          num: rank,
+          name: isSpecialSource(source) ? '搜索结果位置' : `${SOURCE_ZH[source]}热搜榜最高位置`,
+          num: isSpecialSource(source) ? pos : rank,
           unit: '位',
         })
       }
@@ -410,28 +420,14 @@ const getFileListClick = async (keyWord: string) => {
   }
 }
 
-// 获取搜索结果页（关注热点）
-const getSearchListClick = async (keyWord: string) => {
-  try {
-    const res: any = await geSearchListAjax(keyWord)
-    const { code, data, msg } = res || {}
-    const { list = [] } = JSON.parse(JSON.stringify(data || {}))
-    if (code === 0) {
-      const content = list?.map((el: any, index: number) => {
-        el.pos = index + 1
-        return `${el.aid}-${el.source}-${el.title}`
-      })
-      return {
-        searchList: list,
-        searchContent: content?.join(','),
-      }
-    } else {
-      console.error('获取搜索结果页:', msg)
-      return {}
-    }
-  } catch (err) {
-    console.error('获取搜索结果页:', err)
-    return {}
+// 获取搜索列表
+const getSearchListClick = (list: any) => {
+  const content = list?.map((el: any) => {
+    return `${el.aid}-${el.source}-${el.title}`
+  })
+  return {
+    searchList: list,
+    searchContent: content?.join(','),
   }
 }
 
@@ -507,6 +503,7 @@ const aiOutput = async (type, word) => {
 
 // 延时器
 const delayTimeClick = () => {
+  if (!webWorker) return
   return new Promise((resolve) => {
     webWorker.postMessage({})
     webWorker.onmessage = () => {
@@ -551,7 +548,12 @@ const reSubmit = async (type, word) => {
   }
 }
 
-onUnmounted(() => {
+onMounted(() => {
+  setWatermark()
+})
+
+onBeforeUnmount(() => {
+  clear()
   reset()
   if (webWorker) {
     webWorker.terminate()

@@ -15,7 +15,7 @@
 
       <!-- 列表内容 -->
       <div :class="['panel', isHistoryTab() ? 'add-padding' : '']">
-        <ListItem v-if="dataMap.list?.length" :source-id="dataMap.sourceId" :list="dataMap.list" :page="dataMap.page" />
+        <ListItem v-if="dataMap.list?.length" :source="dataMap.sourceId" :list="dataMap.list" :page="dataMap.page" />
 
         <!-- 分页 -->
         <div class="page-wrap" v-if="isHistoryTab() && dataMap.list?.length">
@@ -38,9 +38,9 @@
 </template>
 
 <script setup lang="ts">
-import { reactive, onMounted, onUnmounted } from 'vue'
+import { reactive, onMounted, onBeforeUnmount } from 'vue'
 import { useRoute } from 'vue-router'
-import { ElMessage } from 'element-plus'
+import { Message } from '@/utils/message'
 import { getHotListAjax, getHistoryListAjax } from '@/api/home'
 
 import Empty from '@/component/Empty.vue'
@@ -147,11 +147,11 @@ const init = (mode?: string, params?: object) => {
           dataMap.list = data?.list || []
           dataMap.total = data.count
         } else {
-          ElMessage.error(msg)
+          Message('error', msg)
         }
       })
       .catch((error) => {
-        ElMessage.error(error)
+        Message('error', error)
       })
       .finally(() => {
         closeClick()
@@ -167,11 +167,11 @@ const init = (mode?: string, params?: object) => {
           }
           dataMap.list = data?.list || []
         } else {
-          ElMessage.error(msg)
+          Message('error', msg)
         }
       })
       .catch((error) => {
-        ElMessage.error(error)
+        Message('error', error)
       })
       .finally(() => {
         closeClick()
@@ -190,7 +190,7 @@ onMounted(() => {
   init('v2', initTime())
 })
 
-onUnmounted(() => {
+onBeforeUnmount(() => {
   dataMap.currentTime = ''
 })
 </script>

@@ -1,21 +1,12 @@
-import { reactive, onMounted, computed, toRefs } from 'vue'
-import { ElMessage } from 'element-plus'
+import { reactive, onMounted, toRefs } from 'vue'
+import { Message } from '@/utils/message'
 import { useRoute } from 'vue-router'
 import { formatData, formatDateTime, bigNumberTransform } from '@/utils/util'
 import { getDetailAjax, getEchartDataAjax, getReportResultAjax } from '@/api/home'
 import { ECHART_LABEL, SOURCE_ZH } from '@/views/aiReport/config'
 
-const SPECIAL_SOURCE = ['weibo', 'zhihu', 'baidu']
-
-const ARTICAL_LABEL = {
-  实时热点: '热搜榜当前位置',
-  历史热点: '热搜榜当前位置',
-  舆情报告: '热搜榜当前位置',
-  搜索: '搜索结果位置',
-}
-
 export function useInfo(type = 'report') {
-  const { source, tab, aid, rank: position } = useRoute()?.query || {}
+  const { source, tab, aid, pos } = useRoute()?.query || {}
 
   const dataMap = reactive({
     title: '', // 文章标题
@@ -40,10 +31,18 @@ export function useInfo(type = 'report') {
     loading: true,
   })
 
-  // 是否特殊源
-  const isSpecialBool = computed(() => {
-    return SPECIAL_SOURCE.includes(source)
-  })
+  // 特殊源(特殊源无最高位次，用当前列表位次代替)
+  const isSpecialSource = () => {
+    return ['weibo', 'zhihu', 'baidu'].includes(source)
+  }
+
+  const getName = () => {
+    if (isSpecialSource()) {
+      return tab === '搜索' ? '搜索结果位置' : `${SOURCE_ZH[source]}热搜榜当前位置`
+    } else {
+      return `${SOURCE_ZH[source]}热搜榜最高位置`
+    }
+  }
 
   // 获取图表数据
   const getChartDateHandle = async () => {
@@ -79,22 +78,25 @@ export function useInfo(type = 'report') {
             }
           }
         })
+
         // 把热度值表单放到最前面
         const index = arr.findIndex((el: any) => el.name === '热度值')
         if (index !== -1) {
           const Item = arr.splice(index, 1)[0]
           arr.unshift(Item)
         }
+
         // 当数据源为头条时,去除互动量数据
         if (source === 'toutiao') {
           arr = arr?.filter((el: any) => el.name !== '互动量')
         }
+
         dataMap.chartDate = arr
       } else {
-        ElMessage.error(msg)
+        Message('error', msg)
       }
     } catch (error: any) {
-      ElMessage.error(error)
+      Message('error', error)
     }
   }
 
@@ -126,10 +128,10 @@ export function useInfo(type = 'report') {
         }
         dataMap.reportData = arr
       } else {
-        ElMessage.error(msg)
+        Message('error', msg)
       }
     } catch (error: any) {
-      ElMessage.error(error)
+      Message('error', error)
     }
   }
 
@@ -158,10 +160,10 @@ export function useInfo(type = 'report') {
 
         const arr2 = []
         if (type !== 'report') {
-          if (rank || isSpecialBool.value) {
+          if (rank || isSpecialSource()) {
             arr2.push({
-              name: isSpecialBool.value ? ` ${tab !== '搜索' ? SOURCE_ZH[source] : ''}${ARTICAL_LABEL[tab]}` : `${SOURCE_ZH[source]}热搜榜最高位置`,
-              num: isSpecialBool.value ? position : rank,
+              name: getName(),
+              num: isSpecialSource() ? pos : rank,
               unit: '位',
             })
           }
@@ -173,10 +175,10 @@ export function useInfo(type = 'report') {
             })
           }
         } else {
-          if (rank || isSpecialBool.value) {
+          if (rank || isSpecialSource()) {
             arr2.push({
-              name: isSpecialBool.value ? `${tab !== '搜索' ? SOURCE_ZH[source] : ''}${ARTICAL_LABEL[tab]}` : `${SOURCE_ZH[source]}热搜榜最高位置`,
-              num: isSpecialBool.value ? `${position}位` : `${rank}位`,
+              name: getName(),
+              num: isSpecialSource() ? `${pos}位` : `${rank}位`,
             })
           }
           if (duration) {
@@ -199,10 +201,10 @@ export function useInfo(type = 'report') {
         if (share !== undefined) arr.push(getObj(share, '分享量'))
         dataMap.detailList = arr || []
       } else {
-        ElMessage.error(msg)
+        Message('error', msg)
       }
     } catch (error: any) {
-      ElMessage.error(error)
+      Message('error', error)
     }
   }
 
@@ -248,11 +250,11 @@ export function useInfo(type = 'report') {
 
   onMounted(() => {
     const requestArr = [getArticleDateHandle(), getChartDateHandle()]
-    if (type === 'report') requestArr.push(getReportResultHandle())
+    if (type === 'report') {
+      requestArr.push(getReportResultHandle())
+    }
     Promise.allSettled(requestArr).then(() => {
-      setTimeout(() => {
-        dataMap.loading = false
-      }, 300)
+      dataMap.loading = false
     })
   })
   return {

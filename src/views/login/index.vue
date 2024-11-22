@@ -36,7 +36,7 @@
 <script setup lang="ts">
 import { reactive, ref } from 'vue'
 import CryptoJS from 'crypto-js'
-import { ElMessage } from 'element-plus'
+import { Message } from '@/utils/message'
 import { loginAjax } from '@/api/auth'
 import useUserStore from '@/store/user'
 
@@ -89,9 +89,10 @@ const submitHandle = () => {
           if (code === 0) {
             userStore.setUserInfo(data)
             emit('close')
-            ElMessage.success('登陆成功')
+
+            Message('success', '登陆成功')
           } else {
-            ElMessage.error(msg)
+            Message('error', msg)
           }
         })
         .catch((error) => {

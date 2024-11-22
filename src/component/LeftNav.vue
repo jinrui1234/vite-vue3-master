@@ -1,15 +1,15 @@
 <template>
   <div class="left-nav-container">
-    <img class="logo-icon" src="../assets/img/report/logo-icon.png" alt="" />
+    <img class="logo-icon" src="../assets/img/report/logo-icon.png" />
 
     <div class="tool-wrap">
       <div
         v-for="el of toolList"
         :key="el.label"
         :class="['tool-item', dataMap.currentTool === el.label ? 'active' : '']"
-        @click="selectTool(el.name, el.label)"
+        @click="jumpPage(el.name, el.label)"
       >
-        <img :src="transformToUrl(el.icon, el.label)" alt="" />
+        <img :src="transformToUrl(el.icon, el.label)" />
         <div class="label">{{ el.label }}</div>
       </div>
     </div>
@@ -19,16 +19,16 @@
       <template #content>
         <div class="info-box">
           <div class="info-item" @click="loginClick">
-            <img src="../assets/img/login/name-icon.png" alt="" v-if="isLogin" />
+            <img src="../assets/img/login/name-icon.png" v-if="isLogin" />
             <div class="text">{{ isLogin ? account : '登陆' }}</div>
           </div>
           <div v-if="isLogin" class="info-item split-line" @click="loginOutClick">
-            <img src="../assets/img/login/login-icon.png" alt="" />
+            <img src="../assets/img/login/login-icon.png" />
             <div class="text">退出</div>
           </div>
         </div>
       </template>
-      <img class="login-icon" src="../assets/img/report/login-icon.png " alt="" />
+      <img class="login-icon" src="../assets/img/report/login-icon.png " />
     </el-tooltip>
   </div>
 </template>
@@ -36,7 +36,7 @@
 <script setup lang="ts">
 import { reactive, watch, computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-import { ElMessage } from 'element-plus'
+import { Message } from '@/utils/message'
 import eventBus from '@/utils/mitt'
 import { loginOutAjax } from '@/api/auth'
 import useUserStore from '@/store/user'
@@ -93,6 +93,7 @@ const loginClick = () => {
   }
 }
 
+//退出
 const loginOutClick = () => {
   loginOutAjax()
     .then((res: any) => {
@@ -100,7 +101,7 @@ const loginOutClick = () => {
       if (code === 0) {
         userStore.resetUserInfo()
       } else {
-        ElMessage.error(msg)
+        Message('error', msg)
       }
     })
     .catch((error) => {
@@ -113,9 +114,10 @@ const transformToUrl = (url: string, label?: string) => {
   return new URL(`../assets/img/report/${icon}.png`, import.meta.url).href
 }
 
-const selectTool = (name: string, label: string) => {
+//页面跳转
+const jumpPage = (name: string, label: string) => {
   if (name === 'AiReport' && route.name === 'AiReport') {
-    eventBus.emit('reportReset')
+    eventBus.emit('reportStop')
     return
   }
   router.push({

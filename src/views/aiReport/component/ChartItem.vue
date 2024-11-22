@@ -21,7 +21,7 @@
   </div>
 </template>
 <script setup lang="ts">
-import { onMounted, onUnmounted, computed, watch } from 'vue'
+import { onMounted, onBeforeUnmount, computed, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import * as echarts from 'echarts'
 
@@ -264,7 +264,7 @@ onMounted(() => {
   init()
 })
 
-onUnmounted(() => {
+onBeforeUnmount(() => {
   if (myChart) {
     myChart.dispose()
     myChart = null

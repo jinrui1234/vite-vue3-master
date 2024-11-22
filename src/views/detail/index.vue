@@ -15,9 +15,9 @@
 
       <!-- 图表 -->
       <div class="chart">
-        <HotWrap :hot="hot_value" />
+        <ChartHead :hot="hot_value" />
 
-        <TimeTab style="margin-bottom: 30px" :id="timeId" @tab-change="handleClickTab" />
+        <TimeTab style="margin: 20px auto 35px" :id="timeId" @tab-change="handleClickTab" />
 
         <template v-if="chartDate?.length">
           <ChartItem class="chart-item" v-for="el of chartDate" :key="el.id" :name="el.name" :id="el.id" :x="el.x" :y="el.y" :y2="el.y2" />
@@ -35,16 +35,16 @@ import { useInfo } from '@/utils/useInfo'
 import QuotaList from './component/QuotaList.vue'
 import SummerList from './component/SummerList.vue'
 import ArticleTitle from './component/ArticleTitle.vue'
+import ChartHead from './component/ChartHead.vue'
 
 import ChartItem from '@/views/aiReport/component/ChartItem.vue'
 import TimeTab from '@/views/aiReport/component/TimeTab.vue'
 import Empty from '@/views/aiReport/component/Empty.vue'
-import HotWrap from '@/views/aiReport/component/HotWrap.vue'
 
 const router = useRouter()
-const { aid, source, tab, rank } = useRoute()?.query || {}
+const { aid, source, tab, pos } = useRoute()?.query || {}
 
-const { loading, title, link, descript, hot_value, timeId, detailList, summerList, chartDate, setTime } = useInfo('info')
+const { loading, title, link, descript, hot_value, timeId, detailList, summerList, chartDate, setTime } = useInfo('detail')
 
 // 点击tab
 const handleClickTab = (id: string) => {
@@ -59,7 +59,7 @@ const jumpPage = () => {
       aid,
       source,
       tab,
-      rank,
+      pos,
     },
   })
   window.open(page.href, '_blank')

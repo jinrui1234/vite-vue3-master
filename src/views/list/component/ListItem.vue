@@ -32,7 +32,7 @@ const props = defineProps({
     type: Array,
     default: () => [],
   },
-  sourceId: {
+  source: {
     type: String,
     default: '',
   },
@@ -58,9 +58,9 @@ const jumpPage = (name: string, item: any, index: number) => {
     name: name,
     query: {
       aid: item?.aid,
-      source: props.sourceId,
+      source: props.source,
       tab: tab,
-      rank: index + 1,
+      pos: index + 1,
     },
   })
   window.open(page.href, '_blank')

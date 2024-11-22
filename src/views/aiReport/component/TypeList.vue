@@ -1,12 +1,13 @@
 <!-- 模版列表 -->
 <template>
   <div class="type-wrap">
-    <span>{{ typeList[dataMap.currentType] }}</span>
+    <!-- <span>{{ typeList[dataMap.currentType] }}</span> -->
     <el-tooltip effect="light" placement="top">
       <img src="@/assets/img/report/type-icon.png" />
       <template #content>
         <div class="list-wrap">
-          <div class="item" v-for="el of Object.keys(typeList)" :key="el" @click="typeClick(el)">{{ typeList[el] }}</div>
+          报告模版开发中，尽情期待!
+          <!-- <div class="item" v-for="el of Object.keys(typeList)" :key="el" @click="typeClick(el)">{{ typeList[el] }}</div> -->
         </div>
       </template>
     </el-tooltip>
@@ -14,19 +15,19 @@
 </template>
 
 <script setup lang="ts">
-import { reactive } from 'vue'
-const typeList = {
-  '1': '周报',
-  '2': '月报',
-}
+// import { reactive } from 'vue'
+// const typeList = {
+//   '1': '周报',
+//   '2': '月报',
+// }
 
-const dataMap = reactive({
-  currentType: '1',
-})
+// const dataMap = reactive({
+//   currentType: '1',
+// })
 
-const typeClick = (id: string) => {
-  dataMap.currentType = id
-}
+// const typeClick = (id: string) => {
+//   dataMap.currentType = id
+// }
 </script>
 
 <style scoped lang="less">
@@ -37,7 +38,7 @@ const typeClick = (id: string) => {
   img {
     width: 20px;
     height: 20px;
-    cursor: pointer;
+    cursor: not-allowed;
   }
   span {
     font-family: Microsoft YaHei;

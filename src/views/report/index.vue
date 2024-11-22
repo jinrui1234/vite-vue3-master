@@ -15,29 +15,30 @@
         <QuotaList v-if="summerList?.length || detailList?.length" :list="[...summerList, ...detailList]" />
       </div>
 
-      <HotWrap :hot="hot_value" />
+      <ChartHead :hot="hot_value" />
 
-      <TimeTab style="margin-bottom: 30px" :id="timeId" @tab-change="handleClickTab" />
+      <TimeTab style="margin: 20px auto 35px" :id="timeId" @tab-change="handleClickTab" />
 
       <template v-if="chartDate?.length">
         <ChartItem class="chart-item" v-for="el of chartDate" :key="el.id" :name="el.name" :id="el.id" :x="el.x" :y="el.y" :y2="el.y2" />
       </template>
       <Empty v-else />
     </div>
-    <div class="downLoad" v-if="!loading">
-      <span>下载</span>
-      <!-- <i-ep-download class="icon" /> -->
-    </div>
+    <!-- <div class="downLoad" v-if="!loading"> -->
+    <!-- <span>下载</span> -->
+    <!-- <i-ep-download class="icon" /> -->
+    <!-- </div> -->
   </div>
 </template>
 <script setup lang="ts">
+import { onMounted, onBeforeUnmount } from 'vue'
 import { useInfo } from '@/utils/useInfo'
-import { watermark } from '@/utils/waterMark'
+import { useWatermark } from '@/utils/waterMark'
 
 import ChartItem from '@/views/aiReport/component/ChartItem.vue'
 import TimeTab from '@/views/aiReport/component/TimeTab.vue'
 import Empty from '@/views/aiReport/component/Empty.vue'
-import HotWrap from '@/views/aiReport/component/HotWrap.vue'
+import ChartHead from '@/views/detail/component/ChartHead.vue'
 import QuotaList from '@/views/detail/component/QuotaList.vue'
 
 import Title from './component/Title.vue'
@@ -45,7 +46,8 @@ import TagList from './component/TagList.vue'
 import ProgressItem from './component/ProgressItem.vue'
 import ReportDoor from './component/ReportDoor.vue'
 
-watermark()
+const { setWatermark, clear } = useWatermark()
+
 const { loading, title, link, hot_value, timeId, infoList, reportData, detailList, summerList, chartDate, setTime } = useInfo()
 
 // 点击tab
@@ -57,6 +59,14 @@ const handleClickTab = (id: string) => {
 const jumpPage = (url: string) => {
   window.open(url)
 }
+
+onMounted(() => {
+  setWatermark()
+})
+
+onBeforeUnmount(() => {
+  clear()
+})
 </script>
 <style lang="less" scoped>
 .report-container {
@@ -105,7 +115,7 @@ const jumpPage = (url: string) => {
     line-height: 32px;
   }
 
-  :deep(.quota-container) {
+  :deep(.quota-wrap) {
     grid-template-columns: repeat(6, 1fr);
 
     .item {
