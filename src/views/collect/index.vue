@@ -37,14 +37,14 @@ const getList = async () => {
   for (const el of dataMap.list) {
     try {
       const res: any = await getHotListAjax(el.source, dataMap.pageSize)
-      const { code, data } = res || {}
+      const { code, data, msg } = res || {}
       if (code === 0) {
         el.list = data.list
       } else {
-        Message('error', '网络错误，请稍后重试')
+        Message('error', msg)
       }
     } catch (error) {
-      Message('error', '网络错误，请稍后重试')
+      Message('error', error)
     }
   }
   dataMap.loading = false

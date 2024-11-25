@@ -1,4 +1,6 @@
 import axios from 'axios'
+import { Message } from '@/utils/message'
+import eventBus from '@/utils/mitt'
 import useUserStore from '@/store/user'
 
 const service = axios.create({
@@ -46,6 +48,9 @@ service.interceptors.request.use(
 service.interceptors.response.use(
   (response) => {
     const res = response.data
+    if (res?.code === 401) {
+      eventBus.emit('loginHandle')
+    }
     return res
   },
   (e) => {
@@ -116,16 +121,7 @@ function httpErrorStatusHandle(error: any) {
   if (error.message.includes('Network')) {
     message = window.navigator.onLine ? '服务端异常！' : '您断网了！'
   }
-
-  console.error(message)
-
-  //   Message({
-  //     message: message,
-  //     type: "error",
-  //     duration: 5000,
-  //     showClose: true,
-  //     offset: 80,
-  //   });
+  Message('error', message)
 }
 
 export default service

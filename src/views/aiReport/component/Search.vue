@@ -12,9 +12,9 @@
         type="textarea"
         placeholder="请输入您关注的舆情主题或者事件描述，可以输入文本、链接"
         v-model.trim="dataMap.textareaValue"
-        @keyup.enter="() => handleSubmit()"
+        @keyup.enter="() => getCount()"
       />
-      <div class="btn" @click="() => handleSubmit()">
+      <div class="btn" @click="() => getCount()">
         <img src="@/assets/img/report/submit-icon.png" alt="" />
         <span>提交</span>
       </div>
@@ -33,6 +33,7 @@
 import { reactive } from 'vue'
 import { Message } from '@/utils/message'
 import { geSearchListAjax } from '@/api/home'
+import { getCountAjax } from '@/api/auth'
 import { MODE_LIST, MODE_PROP, PROMPT_URL } from '../config'
 import TypeList from './TypeList.vue'
 
@@ -59,12 +60,28 @@ const modeClick = (id: string) => {
   dataMap.currentMode = id
 }
 
+// 获取次数
+const getCount = (value?: string) => {
+  getCountAjax()
+    .then((res: any) => {
+      const { code, data, msg } = res || {}
+      if (code === 0) {
+        if (!data?.free_total) {
+          Message('error', '暂无使用次数，请联系管理员')
+          return
+        }
+        handleSubmit(value)
+      } else {
+        Message('error', msg)
+      }
+    })
+    .catch((error) => {
+      Message('error', error)
+    })
+}
+
 // 提交
 const handleSubmit = (value?: string) => {
-  // if (!prop.stopStatus) {
-  //   Message('error', '稍等片刻，等助手回复完毕再提交哦~')
-  //   return
-  // }
   const text = value || dataMap.textareaValue?.trim()
   if (!text) {
     Message('warning', '请输入您关注的舆情主题或者事件描述')
@@ -181,7 +198,7 @@ const isLink = (str: string) => {
 }
 
 defineExpose({
-  handleSubmit,
+  getCount,
 })
 </script>
 

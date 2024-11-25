@@ -13,18 +13,18 @@
           </el-form-item>
           <el-form-item prop="password">
             <img src="../../assets/img/login/lock-icon.png" alt="" />
-            <el-input :type="dataMap.passwordShow ? 'text' : 'password'" placeholder="密码" v-model="loginForm.password" />
-            <img src="../../assets/img/login/eye-icon.png" alt="" v-if="dataMap.passwordShow" @click="passwordShowClick" />
+            <el-input :type="dataMap.isPasswordShow ? 'text' : 'password'" placeholder="密码" v-model="loginForm.password" />
+            <img src="../../assets/img/login/eye-icon.png" alt="" v-if="dataMap.isPasswordShow" @click="passwordShowClick" />
             <img src="../../assets/img/login/eye-close-icon.png" alt="" v-else @click="passwordShowClick" />
           </el-form-item>
 
-          <div class="record-wrap">
+          <!-- <div class="record-wrap">
             <el-checkbox>记住我</el-checkbox>
-          </div>
-          <el-button type="primary" @click="submitHandle">登录</el-button>
+          </div> -->
+          <el-button type="primary" :disabled="!dataMap.isProtocol" :dark="!dataMap.isProtocol" @click="submitHandle">登录</el-button>
 
           <div class="rule-wrap">
-            <el-checkbox v-model="dataMap.protocol" />
+            <el-checkbox v-model="dataMap.isProtocol" />
             <div class="text">已阅读并同意智云万象·舆情分析研判平台帐号 <a href="">用户协议</a> 和 <a href="">隐私政策</a></div>
           </div>
         </el-form>
@@ -34,7 +34,7 @@
 </template>
 
 <script setup lang="ts">
-import { reactive, ref } from 'vue'
+import { reactive, ref, watch } from 'vue'
 import CryptoJS from 'crypto-js'
 import { Message } from '@/utils/message'
 import { loginAjax } from '@/api/auth'
@@ -45,15 +45,15 @@ const userStore = useUserStore()
 const emit = defineEmits(['close'])
 const loginFormRef = ref(null)
 
-defineProps({
+const prop = defineProps({
   visible: {
     type: Boolean,
     default: false,
   },
 })
 const dataMap = reactive({
-  passwordShow: false,
-  protocol: false,
+  isPasswordShow: false,
+  isProtocol: false, //协议同意
 })
 const loginForm = reactive({
   username: '',
@@ -66,10 +66,10 @@ const loginRules = {
 
 // 密码显隐切换
 const passwordShowClick = () => {
-  dataMap.passwordShow = !dataMap.passwordShow
+  dataMap.isPasswordShow = !dataMap.isPasswordShow
 }
 
-// 关键
+// 关闭
 const handleClose = () => {
   emit('close')
 }
@@ -101,6 +101,18 @@ const submitHandle = () => {
     }
   })
 }
+
+watch(
+  () => prop.visible,
+  (value: boolean) => {
+    if (!value) {
+      loginFormRef.value?.resetFields()
+      dataMap.isPasswordShow = false
+      dataMap.isProtocol = false
+    }
+  },
+  { immediate: true }
+)
 </script>
 
 <style scoped lang="less">
@@ -163,8 +175,8 @@ const submitHandle = () => {
     width: 100%;
     height: 32px;
     border-radius: 32px;
-    background: #409eff;
-    margin-top: 26px;
+    // background: #409eff;
+    margin-top: 20px;
   }
 }
 

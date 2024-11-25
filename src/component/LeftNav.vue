@@ -14,21 +14,21 @@
       </div>
     </div>
 
-    <el-tooltip popper-class="tooltip-wrap" effect="light" :show-arrow="false" placement="right" :offset="15">
+    <el-tooltip popper-class="tooltip-wrap" effect="light" :show-arrow="false" placement="right" :offset="15" :disabled="!isLogin">
       <!-- 用户信息弹窗 -->
       <template #content>
         <div class="info-box">
-          <div class="info-item" @click="loginClick">
-            <img src="../assets/img/login/name-icon.png" v-if="isLogin" />
-            <div class="text">{{ isLogin ? account : '登陆' }}</div>
+          <div class="info-item">
+            <img src="../assets/img/login/name-icon.png" />
+            <div class="text">{{ account }}</div>
           </div>
-          <div v-if="isLogin" class="info-item split-line" @click="loginOutClick">
+          <div class="info-item split-line" @click="loginOutClick">
             <img src="../assets/img/login/login-icon.png" />
             <div class="text">退出</div>
           </div>
         </div>
       </template>
-      <img class="login-icon" src="../assets/img/report/login-icon.png " />
+      <img class="login-icon" src="../assets/img/report/login-icon.png " @click="loginClick" />
     </el-tooltip>
   </div>
 </template>
@@ -84,7 +84,7 @@ const account = computed(() => {
 })
 
 const isLogin = computed(() => {
-  return sessionStorage.getItem('token')
+  return !!userStore.userInfo?.name
 })
 
 const loginClick = () => {
@@ -100,6 +100,7 @@ const loginOutClick = () => {
       const { code, msg } = res || {}
       if (code === 0) {
         userStore.resetUserInfo()
+        Message('success', '退出成功')
       } else {
         Message('error', msg)
       }
@@ -116,6 +117,10 @@ const transformToUrl = (url: string, label?: string) => {
 
 //页面跳转
 const jumpPage = (name: string, label: string) => {
+  if (!isLogin.value) {
+    eventBus.emit('loginHandle')
+    return
+  }
   if (name === 'AiReport' && route.name === 'AiReport') {
     eventBus.emit('reportStop')
     return
@@ -168,6 +173,7 @@ watch(
 }
 
 .tool-wrap {
+  min-height: 279px;
   width: 48px;
   margin: 10px 0px 15px;
   padding: 10px 0px;

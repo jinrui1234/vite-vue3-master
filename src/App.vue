@@ -1,7 +1,7 @@
 <template>
   <div class="app-container">
     <!-- 左侧导航栏 -->
-    <LeftNav @login="dataMap.visible = true" />
+    <LeftNav @login="loginHandle" />
 
     <!-- 登陆 -->
     <Login :visible="dataMap.visible" @close="dataMap.visible = false" />
@@ -17,6 +17,7 @@
 <script setup lang="ts">
 import { reactive, onMounted, onBeforeUnmount } from 'vue'
 import { useRoute } from 'vue-router'
+import eventBus from '@/utils/mitt'
 
 import { Message } from '@/utils/message'
 import { refreshTicketAjax } from '@/api/auth'
@@ -36,6 +37,10 @@ const dataMap = reactive({
   visible: false,
 })
 
+const loginHandle = () => {
+  if (!dataMap.visible) dataMap.visible = true
+}
+
 // 25分钟，刷新一次token
 const resetTokenClick = () => {
   refreshTicketAjax()
@@ -53,6 +58,7 @@ const resetTokenClick = () => {
 }
 
 onMounted(() => {
+  eventBus.on('loginHandle', loginHandle)
   webWorker.postMessage({})
   webWorker.onmessage = () => {
     resetTokenClick()
@@ -60,6 +66,7 @@ onMounted(() => {
 })
 
 onBeforeUnmount(() => {
+  eventBus.off('loginHandle', loginHandle)
   if (webWorker) {
     webWorker.terminate()
     webWorker = null

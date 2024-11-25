@@ -32,7 +32,7 @@
 import { reactive, ref, nextTick, computed, watch, onMounted, onBeforeUnmount } from 'vue'
 import eventBus from '@/utils/mitt'
 import { Message } from '@/utils/message'
-// import { getCountAjax, resetCountAjax } from '@/api/auth'
+import { resetCountAjax } from '@/api/auth'
 
 import Slogan from './component/Slogan.vue'
 import Search from './component/Search.vue'
@@ -59,44 +59,25 @@ const loadingStatus = computed(() => {
 // 提交
 const onSubmit = (param: any) => {
   dataMap.keyWord = param.keyWord
+  resetCount()
   nextTick(() => {
     reportRef.value?.searchClick(param)
   })
-  // getCountAjax()
-  //   .then((res: any) => {
-  //     const { code, data, msg } = res || {}
-  //     if (code === 0) {
-  //       if (!data?.free_total) {
-  //          Message('error', "暂无使用次数，请充值")
-  //         return
-  //       }
-  //       dataMap.keyWord = param.keyWord
-  //       resetCount()
-  //       nextTick(() => {
-  //         reportRef.value?.searchClick(param)
-  //       })
-  //     } else {
-  //  Message('error', msg)
-  //     }
-  //   })
-  //   .catch((error) => {
-  //     Message('error', error)
-  //   })
 }
 
-// const resetCount = () => {
-//   resetCountAjax()
-//     .then((res: any) => {
-//       const { code, msg } = res || {}
-//       if (code === 0) {
-//       } else {
-//         Message('error', msg)
-//       }
-//     })
-//     .catch((error) => {
-//       Message('error', error)
-//     })
-// }
+const resetCount = () => {
+  resetCountAjax()
+    .then((res: any) => {
+      const { code, msg } = res || {}
+      if (code === 0) {
+      } else {
+        Message('error', msg)
+      }
+    })
+    .catch((error) => {
+      Message('error', error)
+    })
+}
 
 // 开启新对话
 const reportStopClick = () => {
@@ -115,7 +96,7 @@ const stopBtnClick = () => {
 
 //重新生成
 const resetBtnClick = () => {
-  searchRef.value?.handleSubmit(dataMap.keyWord)
+  searchRef.value?.getCount(dataMap.keyWord)
 }
 
 // 添加定时器
