@@ -47,7 +47,7 @@ defineProps({
 
 const dataMap = reactive({
   textareaValue: '',
-  currentMode: '1', //模式
+  currentMode: '2', //模式
 })
 
 const transformToUrl = (url: string, id?: string) => {

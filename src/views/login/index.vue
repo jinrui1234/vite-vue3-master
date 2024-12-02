@@ -36,21 +36,23 @@
 <script setup lang="ts">
 import { reactive, ref, watch } from 'vue'
 import CryptoJS from 'crypto-js'
+import { useRoute } from 'vue-router'
+import { setStorage } from '@/utils/localStorage'
 import { Message } from '@/utils/message'
 import { loginAjax } from '@/api/auth'
 import useUserStore from '@/store/user'
 
 const userStore = useUserStore()
+const route = useRoute()
 
 const emit = defineEmits(['close'])
-const loginFormRef = ref(null)
-
 const prop = defineProps({
   visible: {
     type: Boolean,
     default: false,
   },
 })
+const loginFormRef = ref(null)
 const dataMap = reactive({
   isPasswordShow: false,
   isProtocol: false, //协议同意
@@ -86,11 +88,16 @@ const submitHandle = () => {
       loginAjax(param)
         .then((res: any) => {
           const { code, msg, data } = res || {}
+          const { ticket, refresh_ticket } = data || {}
           if (code === 0) {
+            setStorage('token', ticket, 0)
+            setStorage('refresh_token', refresh_ticket, 0)
             userStore.setUserInfo(data)
             emit('close')
-
-            Message('success', '登陆成功')
+            Message('success', '登录成功')
+            if (route.name !== 'AiReport') {
+              window.location?.reload()
+            }
           } else {
             Message('error', msg)
           }

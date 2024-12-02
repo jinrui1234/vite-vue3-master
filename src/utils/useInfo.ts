@@ -96,7 +96,8 @@ export function useInfo(type = 'report') {
         Message('error', msg)
       }
     } catch (error: any) {
-      Message('error', error)
+      // Message('error', error)
+      console.error(error)
     }
   }
 

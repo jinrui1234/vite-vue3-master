@@ -1,6 +1,6 @@
 <template>
   <div class="left-nav-container">
-    <img class="logo-icon" src="../assets/img/report/logo-icon.png" />
+    <img class="logo-icon" src="../assets/img/report/logo-icon.png" @click="jumpPage('AiReport', '新对话')" />
 
     <div class="tool-wrap">
       <div
@@ -36,6 +36,7 @@
 <script setup lang="ts">
 import { reactive, watch, computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
+import { clearStorage } from '@/utils/localStorage'
 import { Message } from '@/utils/message'
 import eventBus from '@/utils/mitt'
 import { loginOutAjax } from '@/api/auth'
@@ -100,6 +101,8 @@ const loginOutClick = () => {
       const { code, msg } = res || {}
       if (code === 0) {
         userStore.resetUserInfo()
+        clearStorage()
+        router.push('/')
         Message('success', '退出成功')
       } else {
         Message('error', msg)
@@ -117,10 +120,6 @@ const transformToUrl = (url: string, label?: string) => {
 
 //页面跳转
 const jumpPage = (name: string, label: string) => {
-  if (!isLogin.value) {
-    eventBus.emit('loginHandle')
-    return
-  }
   if (name === 'AiReport' && route.name === 'AiReport') {
     eventBus.emit('reportStop')
     return

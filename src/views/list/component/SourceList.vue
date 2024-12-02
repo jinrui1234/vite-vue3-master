@@ -87,9 +87,11 @@ const transformToUrl = (icon: string) => {
   }
 
   .active {
-    color: #f4f4f5;
     background: #409eff;
     border-radius: 4px;
+    .title {
+      color: #fff !important;
+    }
   }
 }
 </style>

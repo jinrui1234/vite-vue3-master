@@ -1,4 +1,7 @@
 import { RouteRecordRaw, createWebHashHistory, createRouter } from 'vue-router'
+import eventBus from '@/utils/mitt'
+import { getStorage, clearStorage } from '@/utils/localStorage'
+import useUserStore from '@/store/user'
 
 const routes: Array<RouteRecordRaw> = [
   { path: '/', redirect: '/aiReport' },
@@ -19,13 +22,22 @@ const router = createRouter({
   routes,
 })
 
-// router.beforeEach((to, from, next) => {
-//   const hasToken = sessionStorage.getItem('token')
-//   if (hasToken) {
-//     next()
-//   } else {
-//     next()
-//   }
-// })
+const white = ['/aiReport']
+router.beforeEach((to, from, next) => {
+  const refresh_token = getStorage('refresh_token')
+  if (!!refresh_token) {
+    next()
+  } else {
+    if (white.indexOf(to.path) !== -1) {
+      next()
+      return
+    }
+    const userStore = useUserStore()
+    userStore.resetUserInfo()
+    clearStorage()
+    eventBus.emit('loginHandle')
+    next(false)
+  }
+})
 
 export default router

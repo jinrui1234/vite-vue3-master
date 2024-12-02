@@ -10,14 +10,13 @@ const useUserStore = defineStore('user', {
   },
   actions: {
     setUserInfo(info: any) {
-      this.userInfo = info
-      sessionStorage.setItem('token', info?.ticket)
-    },
-    setTicket(t: string) {
-      this.userInfo = { ...this.userInfo, ticket: t }
+      this.userInfo = {
+        name: info?.name,
+        role: info?.role,
+        user_id: info?.user_id,
+      }
     },
     resetUserInfo() {
-      sessionStorage.removeItem('token')
       this.userInfo = {}
     },
   },

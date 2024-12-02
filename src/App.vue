@@ -19,18 +19,9 @@ import { reactive, onMounted, onBeforeUnmount } from 'vue'
 import { useRoute } from 'vue-router'
 import eventBus from '@/utils/mitt'
 
-import { Message } from '@/utils/message'
-import { refreshTicketAjax } from '@/api/auth'
-import useUserStore from '@/store/user'
-
 import LeftNav from '@/component/LeftNav.vue'
 import Login from '@/views/login/index.vue'
 import FooterBar from '@/component/FooterBar.vue'
-
-const userStore = useUserStore()
-let webWorker = new Worker(new URL('./worker.js', import.meta.url), {
-  type: 'module',
-})
 
 const route = useRoute()
 const dataMap = reactive({
@@ -41,36 +32,12 @@ const loginHandle = () => {
   if (!dataMap.visible) dataMap.visible = true
 }
 
-// 25分钟，刷新一次token
-const resetTokenClick = () => {
-  refreshTicketAjax()
-    .then((res: any) => {
-      const { code, msg, data } = res || {}
-      if (code === 0) {
-        userStore.setTicket(data.new_refresh_ticket)
-      } else {
-        Message('error', msg)
-      }
-    })
-    .catch((error) => {
-      Message('error', error)
-    })
-}
-
 onMounted(() => {
   eventBus.on('loginHandle', loginHandle)
-  webWorker.postMessage({})
-  webWorker.onmessage = () => {
-    resetTokenClick()
-  }
 })
 
 onBeforeUnmount(() => {
   eventBus.off('loginHandle', loginHandle)
-  if (webWorker) {
-    webWorker.terminate()
-    webWorker = null
-  }
 })
 </script>
 
