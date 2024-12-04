@@ -277,6 +277,7 @@ onBeforeUnmount(() => {
   height: auto;
   border-radius: 10px;
   box-shadow: 0 4px 39px 9px rgb(81 69 159 / 9%);
+  page-break-inside: avoid;
 }
 
 .header {

@@ -503,7 +503,6 @@ const aiOutput = async (type, word) => {
 
 // 延时器
 const delayTimeClick = () => {
-  if (!webWorker) return
   return new Promise((resolve) => {
     webWorker.postMessage({})
     webWorker.onmessage = () => {

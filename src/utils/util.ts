@@ -142,3 +142,8 @@ export const minTransformHour = (time: number | string) => {
 export const isExistence = (prop: any) => {
   return prop !== undefined
 }
+
+// 获取host
+export const getHost = () => {
+  return window.location.href?.split('#')?.[0] || ''
+}

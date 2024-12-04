@@ -94,6 +94,7 @@ onMounted(() => {
   position: relative;
   width: 50%;
   height: 240px;
+  page-break-inside: avoid;
 
   #main {
     width: 100%;

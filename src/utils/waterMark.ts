@@ -4,9 +4,11 @@ import { formatDateTime } from './util'
 const userStore = useUserStore()
 
 const id = Symbol('watermark-dom').toString()
-const markText = `${userStore.userInfo?.name} ${formatDateTime(new Date())}`
 
 export function useWatermark(op = 0.05, appendEl: HTMLElement | null = document.body) {
+  // 水印文本
+  const markText = `${userStore.userInfo?.name} ${formatDateTime(new Date())}`
+
   function setWatermark() {
     createWatermark()
     window.addEventListener('resize', resizeClick)

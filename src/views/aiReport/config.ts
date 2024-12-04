@@ -3,14 +3,14 @@ export const PROMPT_URL = 'http://47.100.50.180:80/get_report'
 // 模式列表
 export const MODE_LIST = [
   {
-    id: '1',
-    name: '前端研判',
-    icon: 'judge-icon',
-  },
-  {
     id: '2',
     name: '舆情分析',
     icon: 'assay-icon',
+  },
+  {
+    id: '1',
+    name: '前端研判',
+    icon: 'judge-icon',
   },
 ]
 

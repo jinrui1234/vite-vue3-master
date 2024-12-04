@@ -47,7 +47,7 @@ const transformToUrl = (icon: string) => {
   // column-gap: 10.5px;
   display: flex;
   flex-wrap: wrap;
-  padding: 12px 20px;
+  padding: 0px 20px 12px;
   background-color: #fff;
   border: 1px solid #e6e6e6;
   border-radius: 9px;
@@ -66,11 +66,12 @@ const transformToUrl = (icon: string) => {
     height: 28px;
     padding: 2px 6px;
     margin-right: 40px;
+    margin-top: 12px;
     cursor: pointer;
 
     img {
-      width: 22px;
-      height: 22px;
+      width: 20px;
+      height: 20px;
       margin-right: 8px;
     }
 

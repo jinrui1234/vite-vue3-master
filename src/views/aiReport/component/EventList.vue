@@ -179,7 +179,7 @@ const handleSelectionChange = (list: any) => {
 
   :deep(.el-table__inner-wrapper) {
     margin-top: 10px;
-
+    page-break-inside: avoid;
     thead {
       th {
         background: #f5f7fa;

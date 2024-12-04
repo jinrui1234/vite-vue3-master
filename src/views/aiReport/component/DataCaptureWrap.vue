@@ -28,6 +28,7 @@ defineProps({
   padding: 20px 0;
   background: #eff0f0;
   border-radius: 9px;
+  page-break-inside: avoid;
 
   .item {
     display: flex;

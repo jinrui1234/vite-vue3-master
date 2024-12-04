@@ -1,4 +1,5 @@
 import request from '@/api/index'
+import axios from 'axios'
 
 // 获取实时数据列表
 export function getHotListAjax(source: string, num = 9999) {
@@ -136,5 +137,16 @@ export function getGradeResultAjax(param: any) {
     data: {
       case: param,
     },
+  })
+}
+
+//pdf下载
+export function pdfDownloadAjax(param: any) {
+  return axios({
+    method: 'post',
+    // url: 'http://localhost:8071/download-pdf',
+    url: 'http://47.103.197.242:8071/download-pdf',
+    responseType: 'blob',
+    data: param,
   })
 }

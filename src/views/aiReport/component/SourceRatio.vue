@@ -67,6 +67,7 @@ onMounted(() => {
   position: relative;
   width: 50%;
   height: 240px;
+  page-break-inside: avoid;
 
   #source-main {
     width: 100%;

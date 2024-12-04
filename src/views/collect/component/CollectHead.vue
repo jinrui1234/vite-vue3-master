@@ -60,8 +60,8 @@ const jumpPage = () => {
     }
 
     img {
-      width: 28px;
-      height: 28px;
+      width: 26px;
+      height: 26px;
       margin-right: 10px;
     }
   }

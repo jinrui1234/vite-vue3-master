@@ -1,13 +1,13 @@
 <template>
   <div class="app-container">
     <!-- 左侧导航栏 -->
-    <LeftNav @login="loginHandle" />
+    <LeftNav v-if="isShow" @login="loginHandle" />
 
     <!-- 登陆 -->
     <Login :visible="dataMap.visible" @close="dataMap.visible = false" />
 
     <!-- 备案号 -->
-    <FooterBar />
+    <FooterBar v-if="isShow" />
 
     <!-- key 防止前后跳转同一个路由，页面不刷新 -->
     <RouterView :key="route.fullPath" />
@@ -15,7 +15,7 @@
 </template>
 
 <script setup lang="ts">
-import { reactive, onMounted, onBeforeUnmount } from 'vue'
+import { reactive, onMounted, onBeforeUnmount, computed } from 'vue'
 import { useRoute } from 'vue-router'
 import eventBus from '@/utils/mitt'
 
@@ -26,6 +26,11 @@ import FooterBar from '@/component/FooterBar.vue'
 const route = useRoute()
 const dataMap = reactive({
   visible: false,
+  isShow: true,
+})
+
+const isShow = computed(() => {
+  return route.name !== 'Pdf'
 })
 
 const loginHandle = () => {
@@ -45,7 +50,7 @@ onBeforeUnmount(() => {
 .app-container {
   width: 100%;
   height: 100%;
-  min-width: 1440px;
+  // min-width: 1440px;
   background: #d2e9fe;
   background-image: url('./assets/img/bg-icon.png');
   background-repeat: no-repeat;

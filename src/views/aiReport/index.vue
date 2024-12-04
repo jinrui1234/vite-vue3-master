@@ -9,7 +9,19 @@
       <Report ref="reportRef" v-if="dataMap.keyWord" />
     </div>
 
-    <template v-if="dataMap.keyWord">
+    <div class="operate-wrap" v-if="dataMap.keyWord">
+      <!-- 下载 -->
+      <template v-if="stopStatus">
+        <div class="stop-btn" v-if="dataMap.downloadLoading">
+          <img src="@/assets/img/report/download-icon.webp" alt="" />
+          <span class="download">下载中</span>
+        </div>
+        <div class="stop-btn" @click="downloadClick" v-else>
+          <img src="@/assets/img/report/download-icon.png" alt="" />
+          <span>下载</span>
+        </div>
+      </template>
+
       <!-- 停止/重新生成按钮 -->
       <div class="stop-btn" v-if="!stopStatus" @click="stopBtnClick">
         <img src="@/assets/img/report/earth-icon.webp" alt="" />
@@ -19,7 +31,7 @@
         <img src="@/assets/img/report/reset-icon.png" alt="" />
         <span>重新生成</span>
       </div>
-    </template>
+    </div>
 
     <!-- 生成状态展示 -->
     <div class="loading-wrap" v-if="dataMap.keyWord && !stopStatus">
@@ -31,12 +43,17 @@
 <script setup lang="ts">
 import { reactive, ref, nextTick, computed, watch, onMounted, onBeforeUnmount } from 'vue'
 import eventBus from '@/utils/mitt'
+import { useRouter } from 'vue-router'
 import { Message } from '@/utils/message'
+import { getHost } from '@/utils/util'
 import { resetCountAjax } from '@/api/auth'
+import { pdfDownloadAjax } from '@/api/home'
 
 import Slogan from './component/Slogan.vue'
 import Search from './component/Search.vue'
 import Report from './component/Report.vue'
+
+const router = useRouter()
 
 const reportRef = ref(null)
 const searchRef = ref(null)
@@ -44,6 +61,8 @@ const timer = ref(null)
 
 const dataMap = reactive({
   keyWord: '',
+
+  downloadLoading: false,
   loading: false,
 })
 
@@ -87,6 +106,36 @@ const reportStopClick = () => {
   }
   dataMap.keyWord = ''
   stopBtnClick()
+}
+
+//下载
+const downloadClick = async () => {
+  dataMap.downloadLoading = true
+  const url = router.resolve({
+    name: 'Pdf',
+    query: {
+      pdfConfig: JSON.stringify(reportRef.value?.dataMap),
+    },
+  })
+  try {
+    const param = {
+      url: getHost() + url.href,
+      fileName: dataMap.keyWord,
+    }
+    const res = await pdfDownloadAjax(param)
+    if (res?.status === 200) {
+      const blob = new Blob([res.data], { type: 'application/pdf' })
+      const a = document.createElement('a')
+      a.href = URL.createObjectURL(blob)
+      a.download = param.fileName || new Date().getTime()
+      document.body.appendChild(a)
+      a.click()
+      document.body.removeChild(a)
+    }
+  } catch (error) {
+    console.error(error)
+  }
+  dataMap.downloadLoading = false
 }
 
 // 停止生成
@@ -181,29 +230,40 @@ onBeforeUnmount(() => {
   }
 }
 
-.stop-btn {
+.operate-wrap {
   display: flex;
-  align-items: center;
   justify-content: flex-end;
-  height: 30px;
-  padding-right: 12px;
+  .stop-btn {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    height: 30px;
+    padding-right: 12px;
 
-  &:hover {
-    opacity: 0.8;
+    &:hover {
+      opacity: 0.8;
+    }
+
+    img {
+      width: 15px;
+      height: 15px;
+      margin-right: 2px;
+      margin-bottom: 0.5px;
+      cursor: pointer;
+    }
+
+    span {
+      font-size: 14px;
+      color: #4955f5;
+      cursor: pointer;
+    }
+
+    .download {
+      cursor: not-allowed !important;
+    }
   }
-
-  img {
-    width: 15px;
-    height: 15px;
-    margin-right: 3px;
-    margin-bottom: 0.5px;
-    cursor: pointer;
-  }
-
-  span {
-    font-size: 14px;
-    color: #4955f5;
-    cursor: pointer;
+  .stop-btn + .stop-btn {
+    margin-left: 6px;
   }
 }
 
