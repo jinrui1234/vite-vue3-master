@@ -94,7 +94,7 @@
 </template>
 
 <script setup lang="ts">
-import { reactive, onMounted, onBeforeUnmount } from 'vue'
+import { reactive, onMounted, onBeforeUnmount, watch } from 'vue'
 import { marked } from 'marked'
 import { useWatermark } from '@/utils/waterMark'
 import { PROMPT_PROP, EFFECT_PROP, MODE_PROP, ECHART_LABEL, SOURCE_ZH, PROMPT_URL } from './../config'
@@ -112,6 +112,8 @@ import TimeTab from './TimeTab.vue'
 import EventEffect from './EventEffect.vue'
 import ChartItem from './ChartItem.vue'
 import Empty from './Empty.vue'
+
+const emit = defineEmits(['saveOldReport'])
 
 const { setWatermark, clear } = useWatermark()
 let webWorker = new Worker(new URL('../worker.js', import.meta.url), {
@@ -546,6 +548,17 @@ const reSubmit = async (type, word) => {
     console.error('重新提交失败:', error)
   }
 }
+
+watch(
+  () => dataMap.isStop,
+  (value: boolean) => {
+    if (value) {
+      setTimeout(() => {
+        emit('saveOldReport')
+      }, 500)
+    }
+  }
+)
 
 onMounted(() => {
   setWatermark()

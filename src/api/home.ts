@@ -90,7 +90,7 @@ export function getFileDetailAjax(id: string) {
   })
 }
 
-// 获取案例列表
+// 获取客户案例列表
 export function getCaseListAjax(word: string) {
   return request({
     url: `/api/query/v2/case/get/doc?title=${word}`,
@@ -98,8 +98,8 @@ export function getCaseListAjax(word: string) {
   })
 }
 
-// 获取案例详情
-export function getCaseDetailAjax(aid: number) {
+// 获取客户案例详情
+export function getCusDetailAjax(aid: number | string) {
   return request({
     url: `/api/case/v1/detail?case_id=${aid}`,
     method: 'get',

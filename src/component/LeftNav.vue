@@ -51,6 +51,11 @@ const toolList = [
     icon: 'ai-report-icon',
   },
   {
+    label: '历史会话',
+    name: 'OldReportList',
+    icon: 'report-list',
+  },
+  {
     label: '热搜榜',
     name: 'Collect',
     icon: 'collect-icon',
@@ -120,10 +125,23 @@ const transformToUrl = (url: string, label?: string) => {
 
 //页面跳转
 const jumpPage = (name: string, label: string) => {
+  // 新对话
   if (name === 'AiReport' && route.name === 'AiReport') {
     eventBus.emit('reportStop')
     return
   }
+  // // 历史对话
+  // if (name === 'OldReportList') {
+  //   const url = router.resolve({
+  //     name: 'OldReportList',
+  //     query: {
+  //       tab: label,
+  //     },
+  //   })
+  //   window.open(url.href)
+  //   return
+  // }
+  // 其它
   router.push({
     name: name,
     query: {

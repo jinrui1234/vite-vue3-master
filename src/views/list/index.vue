@@ -202,7 +202,7 @@ onBeforeUnmount(() => {
   padding-left: calc(50% - 580px);
   padding-right: calc(50% - 580px);
   padding-top: 40px;
-  padding-bottom: 60px;
+  padding-bottom: 40px;
   box-sizing: border-box;
   overflow-y: overlay;
   font-family: 'Microsoft YaHei', sans-serif;

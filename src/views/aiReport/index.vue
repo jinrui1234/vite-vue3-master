@@ -6,14 +6,14 @@
       <Slogan v-show="!dataMap.keyWord" />
       <Search ref="searchRef" @submit="onSubmit" v-show="!dataMap.keyWord" />
 
-      <Report ref="reportRef" v-if="dataMap.keyWord" />
+      <Report ref="reportRef" @saveOldReport="saveOldReportClick" v-if="dataMap.keyWord" />
     </div>
 
     <div class="operate-wrap" v-if="dataMap.keyWord">
       <!-- 下载 -->
       <template v-if="stopStatus">
         <div class="stop-btn" v-if="dataMap.downloadLoading">
-          <img src="@/assets/img/report/download-icon.webp" alt="" />
+          <img class="download-icon" src="@/assets/img/report/download-icon.webp" alt="" />
           <span class="download">下载中</span>
         </div>
         <div class="stop-btn" @click="downloadClick" v-else>
@@ -37,6 +37,8 @@
     <div class="loading-wrap" v-if="dataMap.keyWord && !stopStatus">
       <img src="@/assets/img/report/loading-icon.webp" alt="" />
     </div>
+
+    <FooterBar style="margin-bottom: 14px" v-if="!dataMap.keyWord" />
   </div>
 </template>
 
@@ -46,12 +48,15 @@ import eventBus from '@/utils/mitt'
 import { useRouter } from 'vue-router'
 import { Message } from '@/utils/message'
 import { getHost } from '@/utils/util'
+
 import { resetCountAjax } from '@/api/auth'
 import { pdfDownloadAjax } from '@/api/home'
+import { saveOldReportAjax } from '@/api/history'
 
 import Slogan from './component/Slogan.vue'
 import Search from './component/Search.vue'
 import Report from './component/Report.vue'
+import FooterBar from '@/component/FooterBar.vue'
 
 const router = useRouter()
 
@@ -63,7 +68,6 @@ const dataMap = reactive({
   keyWord: '',
 
   downloadLoading: false,
-  loading: false,
 })
 
 // 停止状态
@@ -78,13 +82,14 @@ const loadingStatus = computed(() => {
 // 提交
 const onSubmit = (param: any) => {
   dataMap.keyWord = param.keyWord
-  resetCount()
+  updateCount()
   nextTick(() => {
     reportRef.value?.searchClick(param)
   })
 }
 
-const resetCount = () => {
+// 更新报告使用次数
+const updateCount = () => {
   resetCountAjax()
     .then((res: any) => {
       const { code, msg } = res || {}
@@ -114,6 +119,7 @@ const downloadClick = async () => {
   const url = router.resolve({
     name: 'Pdf',
     query: {
+      isHistory: 0,
       pdfConfig: JSON.stringify(reportRef.value?.dataMap),
     },
   })
@@ -138,6 +144,24 @@ const downloadClick = async () => {
   dataMap.downloadLoading = false
 }
 
+// 保存历史报告
+const saveOldReportClick = () => {
+  const param = {
+    title: dataMap.keyWord,
+    content: JSON.stringify(reportRef.value?.dataMap),
+  }
+  saveOldReportAjax(param)
+    .then((res: any) => {
+      const { code, msg } = res || {}
+      if (code !== 0) {
+        Message('error', msg)
+      }
+    })
+    .catch((error) => {
+      Message('error', error)
+    })
+}
+
 // 停止生成
 const stopBtnClick = () => {
   reportRef.value?.searchStop()
@@ -145,7 +169,7 @@ const stopBtnClick = () => {
 
 //重新生成
 const resetBtnClick = () => {
-  searchRef.value?.getCount(dataMap.keyWord)
+  searchRef.value?.getCountClick(dataMap.keyWord)
 }
 
 // 添加定时器
@@ -186,15 +210,6 @@ watch(loadingStatus, (value) => {
     node?.removeEventListener('wheel', (e) => wheelEvent(e, node))
   }
 })
-
-watch(
-  () => dataMap.keyWord,
-  (value) => {
-    const node = document.getElementsByClassName('footer-container')?.[0]
-    if (node) node.style.display = value ? 'none' : 'flex'
-  },
-  { immediate: true }
-)
 
 onMounted(() => {
   eventBus.on('reportStop', reportStopClick)
@@ -250,6 +265,11 @@ onBeforeUnmount(() => {
       margin-right: 2px;
       margin-bottom: 0.5px;
       cursor: pointer;
+    }
+
+    .download-icon {
+      width: 18px;
+      height: 18px;
     }
 
     span {

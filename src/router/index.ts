@@ -6,6 +6,8 @@ import useUserStore from '@/store/user'
 const routes: Array<RouteRecordRaw> = [
   { path: '/', redirect: '/aiReport' },
 
+  { path: '/oldReportList', name: 'OldReportList', component: () => import('@/views/oldReportList/index.vue') },
+
   { path: '/aiReport', name: 'AiReport', component: () => import('@/views/aiReport/index.vue') },
 
   { path: '/report', name: 'Report', component: () => import('@/views/report/index.vue') },
@@ -15,6 +17,8 @@ const routes: Array<RouteRecordRaw> = [
   { path: '/list', name: 'List', component: () => import('@/views/list/index.vue') },
 
   { path: '/detail', name: 'Detail', component: () => import('@/views/detail/index.vue') },
+
+  { path: '/cusDetail', name: 'CusDetail', component: () => import('@/views/cusDetail/index.vue') },
 
   { path: '/pdf', name: 'Pdf', component: () => import('@/views/pdf/index.vue') },
 ]

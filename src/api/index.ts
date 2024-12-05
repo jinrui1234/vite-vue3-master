@@ -37,7 +37,6 @@ service.interceptors.request.use(
 
     const token = getStorage('token')
     const refresh_token = getStorage('refresh_token')
-
     config.headers['ticket'] = token
     config.headers['refreshTicket'] = refresh_token
 

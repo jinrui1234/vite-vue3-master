@@ -12,9 +12,9 @@
         type="textarea"
         placeholder="请输入您关注的舆情主题或者事件描述，可以输入文本、链接"
         v-model.trim="dataMap.textareaValue"
-        @keyup.enter="() => getCount()"
+        @keyup.enter="() => getCountClick()"
       />
-      <div class="btn" @click="() => getCount()">
+      <div class="btn" @click="() => getCountClick()">
         <img src="@/assets/img/report/submit-icon.png" alt="" />
         <span>提交</span>
       </div>
@@ -32,6 +32,7 @@
 <script setup lang="ts">
 import { reactive } from 'vue'
 import { Message } from '@/utils/message'
+import { isLink } from '@/utils/util'
 import { geSearchListAjax } from '@/api/home'
 import { getCountAjax } from '@/api/auth'
 import { MODE_LIST, MODE_PROP, PROMPT_URL } from '../config'
@@ -60,8 +61,8 @@ const modeClick = (id: string) => {
   dataMap.currentMode = id
 }
 
-// 获取次数
-const getCount = (value?: string) => {
+// 提交之前，先验证有无次数
+const getCountClick = (value?: string) => {
   getCountAjax()
     .then((res: any) => {
       const { code, data, msg } = res || {}
@@ -191,14 +192,8 @@ const getList = async (text: string, url: string) => {
   dataMap.textareaValue = ''
 }
 
-// 判断是否是链接
-const isLink = (str: string) => {
-  const pattern = /^(https?:\/\/)[^\s/$.?#].[^\s]*$/
-  return pattern.test(str)
-}
-
 defineExpose({
-  getCount,
+  getCountClick,
 })
 </script>
 

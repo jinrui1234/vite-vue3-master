@@ -147,3 +147,9 @@ export const isExistence = (prop: any) => {
 export const getHost = () => {
   return window.location.href?.split('#')?.[0] || ''
 }
+
+// 判断是否是链接
+export const isLink = (str: string) => {
+  const pattern = /^(https?:\/\/)[^\s/$.?#].[^\s]*$/
+  return pattern.test(str)
+}

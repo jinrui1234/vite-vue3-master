@@ -76,6 +76,7 @@ const handleLink = (url: string) => {
     font-size: 24px;
     font-weight: normal;
     line-height: 1.5;
+    word-break: break-word;
   }
 }
 </style>

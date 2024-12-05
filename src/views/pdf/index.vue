@@ -1,85 +1,102 @@
 <template>
-  <div class="report-wrap">
-    <div class="title">{{ `【${dataMap.keyWord}舆情报告】` }}</div>
+  <div
+    :class="[Number(isHistory) ? 'report-history-wrap' : 'report-history-pdf-wrap']"
+    v-loading="dataMap.loading"
+    element-loading-text="加载中..."
+    element-loading-background="rgba(122, 122, 122, 0.05)"
+  >
+    <div :class="[Number(isHistory) ? 'content' : '']" v-if="!dataMap.loading">
+      <div class="title">{{ `【${dataMap.keyWord}舆情报告】` }}</div>
 
-    <ReportDoor />
+      <ReportDoor />
 
-    <!-- 事件概述 -->
-    <template v-if="dataMap.summaryPrompt">
-      <LabelWrap title="事件概述" style="margin: 10px 0" :disabled="!dataMap.isStop" />
-      <div class="prompt" v-html="marked(dataMap.summaryPrompt)"></div>
-    </template>
+      <!-- 事件概述 -->
+      <template v-if="dataMap.summaryPrompt">
+        <LabelWrap title="事件概述" style="margin: 10px 0" :isShowBtn="false" />
+        <div class="prompt" v-html="marked(dataMap.summaryPrompt)"></div>
+      </template>
 
-    <!-- 风险等级 、数据来源 -->
-    <template v-if="dataMap.eventLevel && Object.keys(dataMap.caseSourceObj)?.length">
-      <LabelWrap title="风险等级与数据来源" style="margin-top: 20px" :isShowBtn="false" />
-      <div style="display: flex; align-items: center">
-        <LevelWrap :level="dataMap.eventLevel" />
-        <SourceRatio :list="dataMap.caseSourceObj" />
+      <!-- 风险等级 、数据来源 -->
+      <template v-if="dataMap.eventLevel && Object.keys(dataMap.caseSourceObj)?.length">
+        <LabelWrap title="风险等级与数据来源" style="margin-top: 20px" :isShowBtn="false" />
+        <div style="display: flex; align-items: center">
+          <LevelWrap :level="dataMap.eventLevel" />
+          <SourceRatio :list="dataMap.caseSourceObj" />
+        </div>
+      </template>
+
+      <!-- 处置建议 -->
+      <template v-if="dataMap.advicePrompt">
+        <LabelWrap title="处置建议" style="margin-bottom: 10px" :isShowBtn="false" />
+        <div class="prompt" style="margin-bottom: 20px" v-html="marked(dataMap.advicePrompt)"></div>
+      </template>
+
+      <!-- 风险预警 -->
+      <template v-if="dataMap.warningPrompt">
+        <LabelWrap title="风险预警" style="margin-bottom: 10px" :isShowBtn="false" />
+        <div class="prompt" v-html="marked(dataMap.warningPrompt)"></div>
+      </template>
+
+      <!-- 事件影响力 -->
+      <template v-if="dataMap.eventEffect?.length">
+        <LabelWrap title="事件影响力" style="margin: 20px 0 10px" :isShowBtn="false" />
+        <EventEffect class="effect-item" v-for="item of dataMap.eventEffect" :item="item" :key="item.name" />
+      </template>
+
+      <!-- 数据总览 -->
+      <template v-if="dataMap.eventDataCollection?.length">
+        <LabelWrap title="数据总览" style="margin: 20px 0 10px" :isShowBtn="false" />
+        <DataCaptureWrap :list="dataMap.eventDataCollection" />
+      </template>
+
+      <!-- 话题趋势 -->
+      <template v-if="dataMap.hot_value">
+        <HotWrap :hot="dataMap.hot_value" />
+        <TimeTab style="margin-bottom: 20px" :id="dataMap.timeId" />
+      </template>
+
+      <template v-if="dataMap.eventTrend?.length">
+        <ChartItem class="chart-item" v-for="el of dataMap.eventTrend" :key="el.id" :name="el.name" :id="el.id" :x="el.x" :y="el.y" :y2="el.y2" />
+      </template>
+      <Empty v-if="dataMap.hot_value && !dataMap.eventTrend?.length" />
+
+      <!-- 历史处置情况 -->
+      <EventList v-if="dataMap.casePrompt" title="历史处置情况" :list="dataMap.caseList" :isShowBtn="false" :listShow="dataMap.caseListShow">
+        <div class="prompt" v-html="marked(dataMap.casePrompt)"></div>
+      </EventList>
+
+      <!-- 回应处置参考 -->
+      <EventList v-if="dataMap.filePrompt" title="回应处置参考" :list="dataMap.fileList" :isShowBtn="false" :listShow="dataMap.fileListShow">
+        <div class="prompt" v-html="marked(dataMap.filePrompt)"></div>
+      </EventList>
+
+      <!-- 关联热点 -->
+      <EventList v-if="dataMap.searchPrompt" title="关联热点" :list="dataMap.searchList" :isShowBtn="false" :listShow="!!dataMap.searchList?.length">
+        <div class="prompt" v-html="marked(dataMap.searchPrompt)"></div>
+      </EventList>
+    </div>
+
+    <!-- 下载 -->
+    <div class="operate-wrap" v-if="Number(isHistory) && !dataMap.loading">
+      <div class="stop-btn" v-if="dataMap.downloadLoading">
+        <img class="download-icon" src="@/assets/img/report/download-icon.webp" alt="" />
+        <span class="download">下载中</span>
       </div>
-    </template>
-
-    <!-- 处置建议 -->
-    <template v-if="dataMap.advicePrompt">
-      <LabelWrap title="处置建议" style="margin-bottom: 10px" :disabled="!dataMap.isStop" />
-      <div class="prompt" style="margin-bottom: 20px" v-html="marked(dataMap.advicePrompt)"></div>
-    </template>
-
-    <!-- 风险预警 -->
-    <template v-if="dataMap.warningPrompt">
-      <LabelWrap title="风险预警" style="margin-bottom: 10px" :disabled="!dataMap.isStop" />
-      <div class="prompt" v-html="marked(dataMap.warningPrompt)"></div>
-    </template>
-
-    <!-- 事件影响力 -->
-    <template v-if="dataMap.eventEffect?.length">
-      <LabelWrap title="事件影响力" style="margin: 20px 0 10px" :isShowBtn="false" />
-      <EventEffect class="effect-item" v-for="item of dataMap.eventEffect" :item="item" :key="item.name" />
-    </template>
-
-    <!-- 数据总览 -->
-    <template v-if="dataMap.eventDataCollection?.length">
-      <LabelWrap title="数据总览" style="margin: 20px 0 10px" :isShowBtn="false" />
-      <DataCaptureWrap :list="dataMap.eventDataCollection" />
-    </template>
-
-    <!-- 话题趋势 -->
-    <template v-if="dataMap.hot_value">
-      <HotWrap :hot="dataMap.hot_value" />
-      <TimeTab style="margin-bottom: 20px" :id="dataMap.timeId" />
-    </template>
-
-    <template v-if="dataMap.eventTrend?.length">
-      <ChartItem class="chart-item" v-for="el of dataMap.eventTrend" :key="el.id" :name="el.name" :id="el.id" :x="el.x" :y="el.y" :y2="el.y2" />
-    </template>
-    <Empty v-if="dataMap.hot_value && !dataMap.eventTrend?.length" />
-
-    <!-- 历史处置情况 -->
-    <EventList v-if="dataMap.casePrompt" title="历史处置情况" :list="dataMap.caseList" :isStop="dataMap.isStop" :listShow="dataMap.caseListShow">
-      <div class="prompt" v-html="marked(dataMap.casePrompt)"></div>
-    </EventList>
-
-    <!-- 回应处置参考 -->
-    <EventList v-if="dataMap.filePrompt" title="回应处置参考" :list="dataMap.fileList" :isStop="dataMap.isStop" :listShow="dataMap.fileListShow">
-      <div class="prompt" v-html="marked(dataMap.filePrompt)"></div>
-    </EventList>
-
-    <!-- 关联热点 -->
-    <EventList
-      v-if="dataMap.searchPrompt"
-      title="关联热点"
-      :list="dataMap.searchList"
-      :isStop="dataMap.isStop"
-      :listShow="!!dataMap.searchList?.length"
-    >
-      <div class="prompt" v-html="marked(dataMap.searchPrompt)"></div>
-    </EventList>
+      <div class="stop-btn" @click="downloadClick" v-else>
+        <img src="@/assets/img/report/download-icon.png" alt="" />
+        <span>下载</span>
+      </div>
+    </div>
   </div>
 </template>
 <script setup lang="ts">
 import { reactive, onMounted } from 'vue'
 import { marked } from 'marked'
-import { useRoute } from 'vue-router'
+import { getOldReportDetailAjax } from '@/api/history'
+import { useRoute, useRouter } from 'vue-router'
+import { Message } from '@/utils/message'
+import { getHost } from '@/utils/util'
+import { pdfDownloadAjax } from '@/api/home'
 
 import ReportDoor from '@/views/aiReport/component/ReportDoor.vue'
 import LabelWrap from '@/views/aiReport/component/LabelWrap.vue'
@@ -93,7 +110,9 @@ import EventEffect from '@/views/aiReport/component/EventEffect.vue'
 import ChartItem from '@/views/aiReport/component/ChartItem.vue'
 import Empty from '@/views/aiReport/component/Empty.vue'
 
-const { pdfConfig } = useRoute()?.query || {}
+const { id, isHistory, pdfConfig } = useRoute()?.query || {}
+const router = useRouter()
+
 const dataMap = reactive({
   keyWord: '',
   hot_value: '', // 热度值
@@ -131,21 +150,36 @@ const dataMap = reactive({
   // 热点列表
   searchList: [],
 
-  // 数据来源
-  source: '',
-  aid: '',
-  // 研判类型
-  selectType: '',
-
-  // 停止生成
-  isStop: true,
-  loading: false,
   // 数据趋势-时间
   timeId: '2',
+
+  loading: false,
+  downloadLoading: false,
 })
 
-onMounted(() => {
-  const config = JSON.parse(pdfConfig || '{}')
+// 获取历史详情
+const getReportDetail = () => {
+  dataMap.loading = true
+  getOldReportDetailAjax({ id })
+    .then((res: any) => {
+      const { code, msg, data } = res || {}
+      if (code === 0) {
+        const obj = data?.content
+        if (obj) setDataMap(obj)
+      } else {
+        Message('error', msg)
+      }
+    })
+    .catch((error) => {
+      Message('error', error)
+    })
+    .finally(() => {
+      dataMap.loading = false
+    })
+}
+
+const setDataMap = (param: any) => {
+  const config = JSON.parse(param || '{}')
   dataMap.keyWord = config.keyWord
   dataMap.hot_value = config.hot_value // 热度值
 
@@ -182,21 +216,73 @@ onMounted(() => {
   // 热点列表
   dataMap.searchList = config.searchList
 
-  // 数据来源
-  dataMap.source = config.source
-  dataMap.aid = config.aid
-  // 研判类型
-  dataMap.selectType = config.selectType
-
-  // 停止生成
-  dataMap.isStop = config.isStop
-  dataMap.loading = config.loading
   // 数据趋势-时间
   dataMap.timeId = config.timeId
+}
+
+//下载
+const downloadClick = async () => {
+  dataMap.downloadLoading = true
+  const url = router.resolve({
+    name: 'Pdf',
+    query: {
+      isHistory: 0,
+      pdfConfig: JSON.stringify(dataMap),
+    },
+  })
+  try {
+    const param = {
+      url: getHost() + url.href,
+      fileName: dataMap.keyWord,
+    }
+    const res = await pdfDownloadAjax(param)
+    if (res?.status === 200) {
+      const blob = new Blob([res.data], { type: 'application/pdf' })
+      const a = document.createElement('a')
+      a.href = URL.createObjectURL(blob)
+      a.download = param.fileName || new Date().getTime()
+      document.body.appendChild(a)
+      a.click()
+      document.body.removeChild(a)
+    }
+  } catch (error) {
+    console.error(error)
+  }
+  dataMap.downloadLoading = false
+}
+
+onMounted(() => {
+  Number(isHistory) ? getReportDetail() : setDataMap(pdfConfig)
 })
 </script>
 <style scoped lang="less">
-.report-wrap {
+.report-history-wrap {
+  width: 100%;
+  height: 100%;
+  padding-left: calc(50% - 500px);
+  padding-right: calc(50% - 500px);
+  padding-top: 20px;
+  padding-bottom: 10px;
+  box-sizing: border-box;
+  overflow-y: overlay;
+  font-family: 'Microsoft YaHei', sans-serif;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+
+  .content {
+    width: 100%;
+    min-height: calc(100% - 30px);
+    border-radius: 12px;
+    box-sizing: border-box;
+    background-color: #fff;
+    padding: 40px 40px 30px;
+    background: hsl(240, 33%, 99%);
+    box-shadow: 0 3px 16px 0 rgb(0 0 0 / 10%);
+  }
+}
+
+.report-history-pdf-wrap {
   width: 100%;
   height: auto;
   min-width: 1100px;
@@ -206,10 +292,6 @@ onMounted(() => {
   box-sizing: border-box;
   padding: 40px 40px 30px;
   font-family: 'Microsoft YaHei', sans-serif;
-
-  &::-webkit-scrollbar {
-    display: none;
-  }
 }
 
 .title {
@@ -273,24 +355,45 @@ onMounted(() => {
       text-indent: 0 !important;
     }
   }
-
-  // :deep(li) {
-  // position: relative;
-  // &::before {
-  //   position: absolute;
-  //   left: -1em;
-  //   color: black;
-  //   content: '•';
-  // }
-  // }
 }
 
-:deep(.left-nav-container) {
-  display: none !important;
-}
+.operate-wrap {
+  display: flex;
+  justify-content: flex-end;
+  .stop-btn {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    height: 30px;
+    padding-right: 12px;
 
-:deep(.footer-container) {
-  display: none !important;
+    &:hover {
+      opacity: 0.8;
+    }
+
+    img {
+      width: 15px;
+      height: 15px;
+      margin-right: 2px;
+      margin-bottom: 0.5px;
+      cursor: pointer;
+    }
+
+    .download-icon {
+      width: 18px;
+      height: 18px;
+    }
+
+    span {
+      font-size: 14px;
+      color: #4955f5;
+      cursor: pointer;
+    }
+
+    .download {
+      cursor: not-allowed !important;
+    }
+  }
 }
 
 .chart-item + .chart-item {

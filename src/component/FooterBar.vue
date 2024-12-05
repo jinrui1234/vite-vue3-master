@@ -19,10 +19,6 @@ const jumpPage = () => {
   font-family: 'Microsoft YaHei', sans-serif;
   display: flex;
   justify-content: center;
-
-  position: absolute;
-  bottom: 25px;
-  left: 0;
 }
 
 .tip {

@@ -1,13 +1,10 @@
 <template>
   <div class="app-container">
     <!-- 左侧导航栏 -->
-    <LeftNav v-if="isShow" @login="loginHandle" />
+    <LeftNav v-if="!noShow" @login="loginHandle" />
 
     <!-- 登陆 -->
     <Login :visible="dataMap.visible" @close="dataMap.visible = false" />
-
-    <!-- 备案号 -->
-    <FooterBar v-if="isShow" />
 
     <!-- key 防止前后跳转同一个路由，页面不刷新 -->
     <RouterView :key="route.fullPath" />
@@ -21,16 +18,15 @@ import eventBus from '@/utils/mitt'
 
 import LeftNav from '@/component/LeftNav.vue'
 import Login from '@/views/login/index.vue'
-import FooterBar from '@/component/FooterBar.vue'
 
 const route = useRoute()
 const dataMap = reactive({
   visible: false,
-  isShow: true,
+  noShow: false,
 })
 
-const isShow = computed(() => {
-  return route.name !== 'Pdf'
+const noShow = computed(() => {
+  return route.name === 'Pdf' && !Number(route.query?.isHistory)
 })
 
 const loginHandle = () => {

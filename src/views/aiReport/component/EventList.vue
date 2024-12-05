@@ -1,7 +1,7 @@
 <!-- 案例、文档、热点列表 -->
 <template>
   <div class="event-list-wrap">
-    <LabelWrap :title="title" :disabled="!isStop" style="margin-bottom: 10px" @re-submit="submit" />
+    <LabelWrap :title="title" style="margin-bottom: 10px" :isShowBtn="false" @re-submit="submit" />
 
     <slot></slot>
 
@@ -69,6 +69,10 @@ const prop = defineProps({
   isStop: {
     type: Boolean,
   },
+  isShowBtn: {
+    type: Boolean,
+    default: true,
+  },
   listShow: {
     type: Boolean,
     default: true,
@@ -86,14 +90,14 @@ const dataMap = reactive({
   content: '',
 })
 
-// 预案参考
-const isFileBool = computed(() => {
-  return prop.title?.includes('回应处置')
-})
-
 // 属地案例
 const isCaseBool = computed(() => {
   return prop.title?.includes('历史处置')
+})
+
+// 预案参考
+const isFileBool = computed(() => {
+  return prop.title?.includes('回应处置')
 })
 
 // 热点列表
@@ -113,7 +117,7 @@ const open = (item: any) => {
     return
   }
   const { case_id, aid, source, pos } = item || {}
-  const name = isCaseBool.value ? 'Case' : 'Detail'
+  const name = isCaseBool.value ? 'CusDetail' : 'Detail'
   const page = router.resolve({
     name: name,
     query: {
