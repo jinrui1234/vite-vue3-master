@@ -20,7 +20,9 @@ const routes: Array<RouteRecordRaw> = [
 
   { path: '/cusDetail', name: 'CusDetail', component: () => import('@/views/cusDetail/index.vue') },
 
-  { path: '/pdf', name: 'Pdf', component: () => import('@/views/pdf/index.vue') },
+  { path: '/pdf', name: 'Pdf', component: () => import('@/views/pdf/Pdf.vue') },
+
+  { path: '/purePdf', name: 'PurePdf', component: () => import('@/views/pdf/PurePdf.vue') },
 ]
 
 const router = createRouter({
@@ -28,7 +30,7 @@ const router = createRouter({
   routes,
 })
 
-const white = ['/aiReport', '/pdf']
+const white = ['/aiReport', '/pdf', '/purePdf']
 router.beforeEach((to, from, next) => {
   const refresh_token = getStorage('refresh_token')
   if (!!refresh_token) {

@@ -22,10 +22,6 @@ const init = (list: any[]) => {
   const node = document.getElementById('source-main')
   const myChart = echarts.init(node)
   const option = {
-    grid: {
-      top: '10px',
-      bottom: '10px',
-    },
     label: {
       formatter: '{b} ({d}%)',
     },
@@ -36,7 +32,7 @@ const init = (list: any[]) => {
     series: [
       {
         type: 'pie',
-        radius: ['30%', '75%'],
+        radius: ['30%', '76%'],
         data: list,
         emphasis: {
           itemStyle: {
@@ -64,23 +60,20 @@ onMounted(() => {
 
 <style scoped lang="less">
 .source-ratio-container {
-  position: relative;
   width: 50%;
   height: 240px;
   page-break-inside: avoid;
 
   #source-main {
     width: 100%;
-    height: 100%;
+    height: calc(100% - 12px);
   }
 
   .tip {
-    position: absolute;
-    bottom: 1px;
-    left: 50%;
     font-size: 12px;
+    line-height: 12px;
     color: #666;
-    transform: translateX(-50%);
+    text-align: center;
   }
 }
 </style>

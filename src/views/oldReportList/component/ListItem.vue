@@ -3,7 +3,7 @@
     <div class="title-wrap">
       <img class="doc-icon" src="@/assets/img/list/doc-icon.png" />
       <img class="doc-icon doc-icon-s" src="@/assets/img/list/doc-icon-s.png" />
-      <div class="title" @click="jumpPage(item.id)">{{ item.title || '-' }}</div>
+      <div class="title" @click="jumpPage(item)">{{ item.title || '-' }}</div>
       <div class="time">{{ item.create_time || '-' }}</div>
       <img class="delete-icon" src="@/assets/img/list/delete-icon.png" @click.prevent="deleteClick(item.id)" />
     </div>
@@ -12,6 +12,7 @@
 
 <script setup lang="ts">
 import { useRouter } from 'vue-router'
+import { REPORT_TYPE } from '@/views/aiReport/config'
 
 const emit = defineEmits(['deleteClick'])
 defineProps({
@@ -29,9 +30,10 @@ const deleteClick = (id: string) => {
 }
 
 // 跳转历史报告详情页
-const jumpPage = (id: string) => {
+const jumpPage = ({ id, type = '1' }: any) => {
+  const name = REPORT_TYPE[type]
   const url = router.resolve({
-    name: 'Pdf',
+    name: name,
     query: {
       id: id,
       isHistory: 1,

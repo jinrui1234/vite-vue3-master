@@ -1,5 +1,11 @@
 export const PROMPT_URL = 'http://47.100.50.180:80/get_report'
 
+//报告类型
+export const REPORT_TYPE = {
+  1: 'Pdf',
+  2: 'PurePdf',
+}
+
 // 模式列表
 export const MODE_LIST = [
   {

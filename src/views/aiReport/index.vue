@@ -4,14 +4,19 @@
     <!-- 报告页封面 -->
     <div class="content">
       <Slogan v-show="!dataMap.keyWord" />
-      <Search ref="searchRef" @submit="onSubmit" v-show="!dataMap.keyWord" />
+      <Search ref="searchRef" @submit="onSubmit" @start="onStart" v-show="!dataMap.keyWord" />
 
-      <Report ref="reportRef" @saveOldReport="saveOldReportClick" v-if="dataMap.keyWord" />
+      <div class="report-wrap" v-if="dataMap.keyWord">
+        <div class="title">{{ `【${dataMap.keyWord}舆情报告】` }}</div>
+        <ReportDoor />
+        <Report ref="reportRef" v-if="dataMap.reportMode === '1'" :isStop="dataMap.isStop" @statusOperate="statusOperateClick" />
+        <PureReport ref="pureReportRef" v-if="dataMap.reportMode === '2'" :isStop="dataMap.isStop" @statusOperate="statusOperateClick" />
+      </div>
     </div>
 
     <div class="operate-wrap" v-if="dataMap.keyWord">
       <!-- 下载 -->
-      <template v-if="stopStatus">
+      <template v-if="dataMap.isStop && !dataMap.loading">
         <div class="stop-btn" v-if="dataMap.downloadLoading">
           <img class="download-icon" src="@/assets/img/report/download-icon.webp" alt="" />
           <span class="download">下载中</span>
@@ -23,7 +28,7 @@
       </template>
 
       <!-- 停止/重新生成按钮 -->
-      <div class="stop-btn" v-if="!stopStatus" @click="stopBtnClick">
+      <div class="stop-btn" v-if="!dataMap.isStop" @click="stopBtnClick">
         <img src="@/assets/img/report/earth-icon.webp" alt="" />
         <span>停止生成</span>
       </div>
@@ -34,7 +39,7 @@
     </div>
 
     <!-- 生成状态展示 -->
-    <div class="loading-wrap" v-if="dataMap.keyWord && !stopStatus">
+    <div class="loading-wrap" v-if="dataMap.keyWord && (!dataMap.isStop || dataMap.loading)">
       <img src="@/assets/img/report/loading-icon.webp" alt="" />
     </div>
 
@@ -43,11 +48,12 @@
 </template>
 
 <script setup lang="ts">
-import { reactive, ref, nextTick, computed, watch, onMounted, onBeforeUnmount } from 'vue'
+import { reactive, ref, nextTick, watch, onMounted, onBeforeUnmount } from 'vue'
 import eventBus from '@/utils/mitt'
 import { useRouter } from 'vue-router'
 import { Message } from '@/utils/message'
 import { getHost } from '@/utils/util'
+import { REPORT_TYPE } from './config'
 
 import { resetCountAjax } from '@/api/auth'
 import { pdfDownloadAjax } from '@/api/home'
@@ -55,72 +61,73 @@ import { saveOldReportAjax } from '@/api/history'
 
 import Slogan from './component/Slogan.vue'
 import Search from './component/Search.vue'
-import Report from './component/Report.vue'
+import ReportDoor from './component/ReportDoor.vue'
+
 import FooterBar from '@/component/FooterBar.vue'
+
+import Report from './mode/Report.vue'
+import PureReport from './mode/PureReport.vue'
 
 const router = useRouter()
 
 const reportRef = ref(null)
+const pureReportRef = ref(null)
+
 const searchRef = ref(null)
 const timer = ref(null)
 
 const dataMap = reactive({
   keyWord: '',
+  reportMode: '', // 1-公共模版 2-大模型模版
 
+  loading: false,
+  isStop: true,
   downloadLoading: false,
 })
 
-// 停止状态
-const stopStatus = computed(() => {
-  return reportRef.value?.dataMap?.isStop
-})
+// 状态设置
+const statusOperateClick = (isStop: any, loading: any) => {
+  if (isStop !== 'undefined') dataMap.isStop = isStop
+  if (loading !== 'undefined') dataMap.loading = loading
+}
 
-const loadingStatus = computed(() => {
-  return reportRef.value?.dataMap?.loading
-})
+// 开始搜索
+const onStart = (text: string) => {
+  dataMap.keyWord = text
+  dataMap.loading = true
+}
 
 // 提交
 const onSubmit = (param: any) => {
-  dataMap.keyWord = param.keyWord
+  dataMap.reportMode = param?.reportMode
   updateCount()
   nextTick(() => {
-    reportRef.value?.searchClick(param)
+    dataMap.isStop = false
+    dataMap.reportMode === '1' ? reportRef.value?.searchClick(param) : pureReportRef.value?.searchClick(param)
   })
-}
-
-// 更新报告使用次数
-const updateCount = () => {
-  resetCountAjax()
-    .then((res: any) => {
-      const { code, msg } = res || {}
-      if (code === 0) {
-      } else {
-        Message('error', msg)
-      }
-    })
-    .catch((error) => {
-      Message('error', error)
-    })
 }
 
 // 开启新对话
 const reportStopClick = () => {
-  if (dataMap.keyWord && !stopStatus.value) {
+  if (dataMap.keyWord && !dataMap.isStop) {
     Message('error', '稍等片刻，等助手回复完毕再开启新对话哦~')
     return
   }
   dataMap.keyWord = ''
+  dataMap.reportMode = ''
   stopBtnClick()
 }
 
 //下载
 const downloadClick = async () => {
   dataMap.downloadLoading = true
+  const pdfConfig = dataMap.reportMode === '1' ? reportRef.value?.dataMap : pureReportRef.value?.dataMap
+  const name = REPORT_TYPE[dataMap.reportMode]
   const url = router.resolve({
-    name: 'Pdf',
+    name: name,
     query: {
       isHistory: 0,
-      pdfConfig: JSON.stringify(reportRef.value?.dataMap),
+      pdfConfig: JSON.stringify(pdfConfig),
     },
   })
   try {
@@ -146,9 +153,11 @@ const downloadClick = async () => {
 
 // 保存历史报告
 const saveOldReportClick = () => {
+  const content = dataMap.reportMode === '1' ? reportRef.value?.dataMap : pureReportRef.value?.dataMap
   const param = {
     title: dataMap.keyWord,
-    content: JSON.stringify(reportRef.value?.dataMap),
+    content: JSON.stringify(content),
+    type: dataMap.reportMode,
   }
   saveOldReportAjax(param)
     .then((res: any) => {
@@ -164,12 +173,29 @@ const saveOldReportClick = () => {
 
 // 停止生成
 const stopBtnClick = () => {
-  reportRef.value?.searchStop()
+  dataMap.isStop = true
+  dataMap.loading = false
 }
 
 //重新生成
 const resetBtnClick = () => {
+  dataMap.reportMode === '1' ? reportRef.value?.reset() : pureReportRef.value?.reset()
   searchRef.value?.getCountClick(dataMap.keyWord)
+}
+
+// 更新报告使用次数
+const updateCount = () => {
+  resetCountAjax()
+    .then((res: any) => {
+      const { code, msg } = res || {}
+      if (code === 0) {
+      } else {
+        Message('error', msg)
+      }
+    })
+    .catch((error) => {
+      Message('error', error)
+    })
 }
 
 // 添加定时器
@@ -193,23 +219,35 @@ const wheelEvent = (e: any, node: any) => {
   }
 }
 
-watch(loadingStatus, (value) => {
-  const node = document.getElementsByClassName('content')?.[0]
-  if (value) {
-    addIntervalClick(node)
-    // 添加鼠标事件
-    node?.addEventListener('wheel', (e) => wheelEvent(e, node))
-  } else {
-    if (timer.value) {
-      setTimeout(() => {
-        clearInterval(timer.value)
-        timer.value = null
-      }, 600)
+watch(
+  () => dataMap.loading,
+  (value) => {
+    const node = document.getElementsByClassName('content')?.[0]
+    if (value) {
+      addIntervalClick(node)
+      node?.addEventListener('wheel', (e) => wheelEvent(e, node))
+    } else {
+      if (timer.value) {
+        setTimeout(() => {
+          clearInterval(timer.value)
+          timer.value = null
+        }, 600)
+      }
+      node?.removeEventListener('wheel', (e) => wheelEvent(e, node))
     }
-    // 移除鼠标事件
-    node?.removeEventListener('wheel', (e) => wheelEvent(e, node))
   }
-})
+)
+
+watch(
+  () => dataMap.isStop,
+  (value: boolean) => {
+    if (value && dataMap.reportMode) {
+      setTimeout(() => {
+        saveOldReportClick()
+      }, 500)
+    }
+  }
+)
 
 onMounted(() => {
   eventBus.on('reportStop', reportStopClick)
@@ -230,18 +268,33 @@ onBeforeUnmount(() => {
   padding-bottom: 10px;
   box-sizing: border-box;
   font-family: 'Microsoft YaHei', sans-serif;
+  position: relative;
 }
 
 .content {
   width: 100%;
   height: calc(100% - 30px);
   border-radius: 12px;
-  box-sizing: border-box;
   overflow-y: overlay;
-  position: relative;
-
   &::-webkit-scrollbar {
     display: none;
+  }
+
+  .report-wrap {
+    width: 100%;
+    min-height: 100%;
+    padding: 40px 40px 30px;
+    background: hsl(240, 33%, 99%);
+    box-shadow: 0 3px 16px 0 rgb(0 0 0 / 10%);
+    box-sizing: border-box;
+    .title {
+      font-family: 'Source Han Sans CN', sans-serif;
+      font-size: 28px;
+      font-weight: 700;
+      line-height: 32px;
+      color: #05073b;
+      text-align: center;
+    }
   }
 }
 

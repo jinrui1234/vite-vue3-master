@@ -38,7 +38,7 @@ import { getCountAjax } from '@/api/auth'
 import { MODE_LIST, MODE_PROP, PROMPT_URL } from '../config'
 import TypeList from './TypeList.vue'
 
-const emit = defineEmits(['submit'])
+const emit = defineEmits(['submit', 'start'])
 defineProps({
   stopStatus: {
     type: Boolean,
@@ -96,13 +96,13 @@ const handleSubmit = (value?: string) => {
 }
 
 // 链接获取标题
-const getTitleClick = (text: string) => {
+const getTitleClick = (url: string) => {
   fetch(PROMPT_URL, {
     method: 'post',
     headers: { 'Content-Type': 'text/plain' },
     body: JSON.stringify({
       type: 'huoqubiaoti',
-      prompt: text,
+      prompt: url,
       version: 'V2',
       yanpan_type: MODE_PROP[dataMap.currentMode],
     }),
@@ -118,7 +118,7 @@ const getTitleClick = (text: string) => {
         return reader.read().then(async ({ done, value }) => {
           if (done) {
             if (promptText) {
-              getList(promptText, text)
+              getList(promptText, url)
             } else {
               Message('warning', '暂无数据，请重新输入较精确的关键词')
             }
@@ -145,6 +145,7 @@ const getTitleClick = (text: string) => {
 
 // 获取关联热点列表
 const getList = async (text: string, url: string) => {
+  emit('start', text)
   let firstItem: any = {}
   let dataSourceObj: any = {}
   let searchList: any = []
@@ -152,7 +153,19 @@ const getList = async (text: string, url: string) => {
     const res: any = await geSearchListAjax(text)
     const { list, channel_rate } = JSON.parse(JSON.stringify(res?.data || {}))
     dataSourceObj = channel_rate || {}
-    if (res?.code === 0 && list?.length) {
+    if (res?.code === 0) {
+      // list无数据
+      if (!list?.length) {
+        emit('submit', {
+          keyWord: text,
+          url,
+          selectType: dataMap.currentMode,
+          reportMode: '2',
+        })
+        dataMap.textareaValue = ''
+        return
+      }
+      // list有数据
       list.forEach((el: any, index: number) => {
         el.pos = index + 1
       })
@@ -168,28 +181,31 @@ const getList = async (text: string, url: string) => {
         selectedItem2 = listCopy?.find((el: any) => el.source === 'shenzhen')
       }
       const selectedItem3 = listCopy?.find((el: any) => el.source === 'toutiao')
+
       firstItem = selectedItem1 || selectedItem2 || selectedItem3 || list?.[0] || {}
+      const { source, aid, title, pos } = firstItem || {}
+
+      if (source && aid) {
+        emit('submit', {
+          source,
+          aid,
+          title: title,
+          keyWord: text,
+          url,
+          pos,
+          list: searchList,
+          selectType: dataMap.currentMode,
+          channelRate: dataSourceObj,
+          reportMode: '1',
+        })
+        dataMap.textareaValue = ''
+      }
     } else {
-      Message('warning', '暂无数据，请重新输入较精确的关键词')
+      Message('error', res.msg)
     }
   } catch (error) {
     console.error('获取列表失败', error)
   }
-
-  const { source, aid, title, pos } = firstItem || {}
-  if (!source || !aid) return
-  emit('submit', {
-    source,
-    aid,
-    title: title,
-    keyWord: text,
-    url,
-    pos,
-    list: searchList,
-    selectType: dataMap.currentMode,
-    channelRate: dataSourceObj,
-  })
-  dataMap.textareaValue = ''
 }
 
 defineExpose({

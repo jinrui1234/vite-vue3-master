@@ -30,6 +30,7 @@ const init = () => {
     series: [
       {
         type: 'gauge',
+        radius: '84%',
         axisLine: {
           lineStyle: {
             width: 24,
@@ -91,23 +92,20 @@ onMounted(() => {
 
 <style scoped lang="less">
 .level-wrap {
-  position: relative;
   width: 50%;
   height: 240px;
   page-break-inside: avoid;
 
   #main {
     width: 100%;
-    height: 100%;
+    min-height: calc(100% - 12px);
   }
 
   .tip {
-    position: absolute;
-    bottom: 6px;
-    left: 50%;
     font-size: 12px;
+    line-height: 12px;
     color: #666;
-    transform: translateX(-50%);
+    text-align: center;
   }
 }
 </style>

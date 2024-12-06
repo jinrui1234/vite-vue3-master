@@ -1,12 +1,8 @@
 <template>
-  <div class="report-wrap">
-    <div class="title">{{ `【${dataMap.keyWord}舆情报告】` }}</div>
-
-    <ReportDoor />
-
+  <div>
     <!-- 事件概述 -->
     <template v-if="dataMap.summaryPrompt">
-      <LabelWrap title="事件概述" style="margin: 10px 0" :disabled="!dataMap.isStop" @re-submit="reSubmit('shijiangaishu', $event)" />
+      <LabelWrap title="事件概述" style="margin: 10px 0" :disabled="!isStop" @re-submit="reSubmit('shijiangaishu', $event)" />
       <div class="prompt" v-html="marked(dataMap.summaryPrompt)"></div>
     </template>
 
@@ -21,13 +17,13 @@
 
     <!-- 处置建议 -->
     <template v-if="dataMap.advicePrompt">
-      <LabelWrap title="处置建议" style="margin-bottom: 10px" :disabled="!dataMap.isStop" @re-submit="reSubmit('chuzhijianyi', $event)" />
+      <LabelWrap title="处置建议" style="margin-bottom: 10px" :disabled="!isStop" @re-submit="reSubmit('chuzhijianyi', $event)" />
       <div class="prompt" style="margin-bottom: 20px" v-html="marked(dataMap.advicePrompt)"></div>
     </template>
 
     <!-- 风险预警 -->
     <template v-if="dataMap.warningPrompt">
-      <LabelWrap title="风险预警" style="margin-bottom: 10px" :disabled="!dataMap.isStop" @re-submit="reSubmit('fengxianyujing', $event)" />
+      <LabelWrap title="风险预警" style="margin-bottom: 10px" :disabled="!isStop" @re-submit="reSubmit('fengxianyujing', $event)" />
       <div class="prompt" v-html="marked(dataMap.warningPrompt)"></div>
     </template>
 
@@ -59,7 +55,7 @@
       v-if="dataMap.casePrompt"
       title="历史处置情况"
       :list="dataMap.caseList"
-      :isStop="dataMap.isStop"
+      :isStop="isStop"
       :listShow="dataMap.caseListShow"
       @click-case="clickCaseHandle"
       @re-submit="reSubmit('lishichuli', $event)"
@@ -72,7 +68,7 @@
       v-if="dataMap.filePrompt"
       title="回应处置参考"
       :list="dataMap.fileList"
-      :isStop="dataMap.isStop"
+      :isStop="isStop"
       :listShow="dataMap.fileListShow"
       @re-submit="reSubmit('huiyingchuzhi', $event)"
     >
@@ -84,7 +80,7 @@
       v-if="dataMap.searchPrompt"
       title="关联热点"
       :list="dataMap.searchList"
-      :isStop="dataMap.isStop"
+      :isStop="isStop"
       :listShow="!!dataMap.searchList?.length"
       @re-submit="reSubmit('guanlianredian', $event)"
     >
@@ -94,26 +90,30 @@
 </template>
 
 <script setup lang="ts">
-import { reactive, onMounted, onBeforeUnmount, watch } from 'vue'
+import { reactive, onMounted, onBeforeUnmount } from 'vue'
 import { marked } from 'marked'
 import { useWatermark } from '@/utils/waterMark'
-import { PROMPT_PROP, EFFECT_PROP, MODE_PROP, ECHART_LABEL, SOURCE_ZH, PROMPT_URL } from './../config'
+import { PROMPT_PROP, EFFECT_PROP, MODE_PROP, ECHART_LABEL, SOURCE_ZH, PROMPT_URL } from '../config'
 import { bigNumberTransform, formatData, minTransformHour, isExistence } from '@/utils/util'
 import { getDetailAjax, getReportResultAjax, getEchartDataAjax, getCaseListAjax, getFileListAjax } from '@/api/home'
 
-import ReportDoor from './ReportDoor.vue'
-import LabelWrap from './LabelWrap.vue'
-import LevelWrap from './LevelWrap.vue'
-import SourceRatio from './SourceRatio.vue'
-import DataCaptureWrap from './DataCaptureWrap.vue'
-import EventList from './EventList.vue'
-import HotWrap from './HotWrap.vue'
-import TimeTab from './TimeTab.vue'
-import EventEffect from './EventEffect.vue'
-import ChartItem from './ChartItem.vue'
-import Empty from './Empty.vue'
+import LabelWrap from '../component/LabelWrap.vue'
+import LevelWrap from '../component/LevelWrap.vue'
+import SourceRatio from '../component/SourceRatio.vue'
+import DataCaptureWrap from '../component/DataCaptureWrap.vue'
+import EventList from '../component/EventList.vue'
+import HotWrap from '../component/HotWrap.vue'
+import TimeTab from '../component/TimeTab.vue'
+import EventEffect from '../component/EventEffect.vue'
+import ChartItem from '../component/ChartItem.vue'
+import Empty from '../component/Empty.vue'
 
-const emit = defineEmits(['saveOldReport'])
+const emit = defineEmits(['statusOperate'])
+const prop = defineProps({
+  isStop: {
+    type: Boolean,
+  },
+})
 
 const { setWatermark, clear } = useWatermark()
 let webWorker = new Worker(new URL('../worker.js', import.meta.url), {
@@ -160,16 +160,10 @@ const dataMap = reactive({
   searchPrompt: '',
   // 热点列表
   searchList: [],
-
-  // 停止生成
-  isStop: true,
-  loading: false,
 })
 
 // 重置
 const reset = () => {
-  dataMap.loading = true
-  dataMap.isStop = false
   dataMap.keyWord = ''
   dataMap.hot_value = ''
 
@@ -234,11 +228,9 @@ const searchClick = async (param: any) => {
     await getReportPrompt('guanlianredian', keyWord, searchContent, url)
     dataMap.searchList = searchList
 
-    dataMap.isStop = true
-    dataMap.loading = false
+    statusOperateClick(true, false)
   } catch (error) {
-    dataMap.isStop = true
-    dataMap.loading = false
+    statusOperateClick(true, false)
     console.error('发生错误3:', error)
   }
 }
@@ -462,7 +454,7 @@ const getReportPrompt = (type: string, prompt: string, content = '', url = '') =
       const decoder = new TextDecoder()
       let promptText = ''
       function read() {
-        if (dataMap.isStop) throw new Error('停止生成了')
+        if (prop.isStop) throw new Error('停止生成了')
         return reader.read().then(async ({ done, value }) => {
           if (done) {
             dataMap[PROMPT_PROP[type]] = type !== 'fengxiandengji' ? deleteLastChar(dataMap[PROMPT_PROP[type]]) : promptText
@@ -529,36 +521,24 @@ const deleteLastChar = (str: string) => {
   return str.slice(0, -1)
 }
 
-// 停止生成
-const searchStop = () => {
-  dataMap.isStop = true
-  dataMap.loading = false
-}
-
 // 重新提交
 const reSubmit = async (type, word) => {
   try {
-    dataMap.isStop = false
+    statusOperateClick(false)
     dataMap[PROMPT_PROP[type]] = '|'
     const text = word || dataMap.keyWord
     await getReportPrompt(type, text)
-    dataMap.isStop = true
+    statusOperateClick(true)
   } catch (error) {
-    dataMap.isStop = true
+    statusOperateClick(true)
     console.error('重新提交失败:', error)
   }
 }
 
-watch(
-  () => dataMap.isStop,
-  (value: boolean) => {
-    if (value) {
-      setTimeout(() => {
-        emit('saveOldReport')
-      }, 500)
-    }
-  }
-)
+// 状态操作
+const statusOperateClick = (isStop?: boolean, loading?: boolean) => {
+  emit('statusOperate', isStop, loading)
+}
 
 onMounted(() => {
   setWatermark()
@@ -576,36 +556,11 @@ onBeforeUnmount(() => {
 defineExpose({
   dataMap,
   searchClick,
-  searchStop,
   reset,
 })
 </script>
 
 <style scoped lang="less">
-.report-wrap {
-  width: 100%;
-  min-height: 100%;
-  padding: 40px 40px 30px;
-  background: hsl(240, 33%, 99%);
-  border-radius: 12px;
-  box-shadow: 0 3px 16px 0 rgb(0 0 0 / 10%);
-  box-sizing: border-box;
-  position: relative;
-
-  &::-webkit-scrollbar {
-    display: none;
-  }
-}
-
-.title {
-  font-family: 'Source Han Sans CN', sans-serif;
-  font-size: 28px;
-  font-weight: 700;
-  line-height: 32px;
-  color: #05073b;
-  text-align: center;
-}
-
 .prompt {
   font-family: 'Source Han Sans CN', sans-serif;
   font-size: 15px;
@@ -658,16 +613,6 @@ defineExpose({
       text-indent: 0 !important;
     }
   }
-
-  // :deep(li) {
-  // position: relative;
-  // &::before {
-  //   position: absolute;
-  //   left: -1em;
-  //   color: black;
-  //   content: '•';
-  // }
-  // }
 }
 
 .chart-item + .chart-item {

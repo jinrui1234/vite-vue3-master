@@ -26,7 +26,7 @@ const dataMap = reactive({
 })
 
 const noShow = computed(() => {
-  return route.name === 'Pdf' && !Number(route.query?.isHistory)
+  return ['Pdf', 'PurePdf'].includes(route.name) && !Number(route.query?.isHistory)
 })
 
 const loginHandle = () => {

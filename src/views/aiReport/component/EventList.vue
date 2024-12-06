@@ -118,6 +118,13 @@ const open = (item: any) => {
   }
   const { case_id, aid, source, pos } = item || {}
   const name = isCaseBool.value ? 'CusDetail' : 'Detail'
+
+  // 人民网留言详情，需要等后端接口
+  if (source === '人民网留言' && name === 'CusDetail') {
+    Message('warning', '详情展示正在开发中，敬请期待')
+    return
+  }
+
   const page = router.resolve({
     name: name,
     query: {
