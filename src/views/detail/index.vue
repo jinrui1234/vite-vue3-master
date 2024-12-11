@@ -42,7 +42,7 @@ import TimeTab from '@/views/aiReport/component/TimeTab.vue'
 import Empty from '@/views/aiReport/component/Empty.vue'
 
 const router = useRouter()
-const { aid, source, tab, pos } = useRoute()?.query || {}
+const { aid, source, pos } = useRoute()?.query || {}
 
 const { loading, title, link, descript, hot_value, timeId, detailList, summerList, chartDate, setTime } = useInfo('detail')
 
@@ -58,7 +58,6 @@ const jumpPage = () => {
     query: {
       aid,
       source,
-      tab,
       pos,
     },
   })

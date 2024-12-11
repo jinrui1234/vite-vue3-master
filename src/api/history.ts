@@ -10,11 +10,12 @@ export function getOldReportAjax(param: any) {
 }
 
 // 历史报告详情
-export function getOldReportDetailAjax(param: any) {
+export function getOldReportDetailAjax(id: any, type: any) {
+  const url = Number(type) ? '/api/report/v1/detail' : '/api/report/v1/noAuth/detail'
   return request({
-    url: `/api/report/v1/detail`,
+    url: url,
     method: 'get',
-    params: param,
+    params: { id },
   })
 }
 

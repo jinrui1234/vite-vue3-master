@@ -5,10 +5,14 @@
 
     <slot></slot>
 
-    <el-table v-if="listShow" :data="list" :scrollbar-always-on="true" max-height="462" @selection-change="handleSelectionChange">
-      <!-- checkbox框 -->
-      <!-- <el-table-column type="selection" width="28" v-if="isCaseBool" /> -->
-
+    <el-table
+      v-if="listShow"
+      :data="list"
+      :scrollbar-always-on="true"
+      max-height="462"
+      empty-text="暂无数据"
+      @selection-change="handleSelectionChange"
+    >
       <!-- 标题 -->
       <el-table-column prop="title" :label="`${title}标题`">
         <template #default="scope">
@@ -119,12 +123,6 @@ const open = (item: any) => {
   const { case_id, aid, source, pos } = item || {}
   const name = isCaseBool.value ? 'CusDetail' : 'Detail'
 
-  // 人民网留言详情，需要等后端接口
-  if (source === '人民网留言' && name === 'CusDetail') {
-    Message('warning', '详情展示正在开发中，敬请期待')
-    return
-  }
-
   const page = router.resolve({
     name: name,
     query: {
@@ -167,9 +165,8 @@ const handleSelectionChange = (list: any) => {
   margin-top: 20px;
 
   .title {
-    overflow: hidden;
-    font-family: 'PingFang SC', sans-serif;
     color: #409eff;
+    overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
     cursor: pointer;
@@ -195,6 +192,11 @@ const handleSelectionChange = (list: any) => {
       th {
         background: #f5f7fa;
       }
+    }
+  }
+  :deep(.el-table__row) {
+    :first-child {
+      max-width: 480px !important;
     }
   }
 }

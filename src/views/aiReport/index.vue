@@ -80,6 +80,8 @@ const dataMap = reactive({
   keyWord: '',
   reportMode: '', // 1-公共模版 2-大模型模版
 
+  saveId: '',
+
   loading: false,
   isStop: true,
   downloadLoading: false,
@@ -120,14 +122,14 @@ const reportStopClick = () => {
 
 //下载
 const downloadClick = async () => {
+  if (!dataMap.saveId) return
   dataMap.downloadLoading = true
-  const pdfConfig = dataMap.reportMode === '1' ? reportRef.value?.dataMap : pureReportRef.value?.dataMap
   const name = REPORT_TYPE[dataMap.reportMode]
   const url = router.resolve({
     name: name,
     query: {
       isHistory: 0,
-      pdfConfig: JSON.stringify(pdfConfig),
+      id: dataMap.saveId,
     },
   })
   try {
@@ -146,7 +148,7 @@ const downloadClick = async () => {
       document.body.removeChild(a)
     }
   } catch (error) {
-    console.error(error)
+    Message('error', '系统错误,请刷新后重试')
   }
   dataMap.downloadLoading = false
 }
@@ -161,8 +163,10 @@ const saveOldReportClick = () => {
   }
   saveOldReportAjax(param)
     .then((res: any) => {
-      const { code, msg } = res || {}
-      if (code !== 0) {
+      const { code, msg, data } = res || {}
+      if (code === 0) {
+        dataMap.saveId = data?.id
+      } else {
         Message('error', msg)
       }
     })

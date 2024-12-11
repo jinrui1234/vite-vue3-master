@@ -7,7 +7,11 @@
     element-loading-background="rgba(122, 122, 122,0.15)"
   >
     <div class="content" v-if="!dataMap.loading">
-      <ArticleTitle :title="dataMap.case?.article_title" :link="dataMap.case?.article_url" :descript="dataMap.case?.article_content" />
+      <ArticleTitle
+        :title="dataMap.case?.article_title || dataMap.case?.title"
+        :link="dataMap.case?.article_url || dataMap.case?.link"
+        :descript="dataMap.case?.article_content || dataMap.case?.content"
+      />
 
       <div class="detail-container">
         <div class="title">案例详情</div>
@@ -25,11 +29,10 @@
 
         <div class="reply-box" v-for="(el, index) in dataMap.reply" :key="index">
           <ReplyItem :item="el" />
-          <div class="text">{{ removeHTMLTags(el?.trace_content) }}</div>
+          <div class="text">{{ removeHTMLTags(el?.trace_content || el?.content) }}</div>
         </div>
       </div>
     </div>
-    <NavBar />
   </div>
 </template>
 
@@ -43,7 +46,7 @@ import { removeHTMLTags } from '@/utils/util'
 import ArticleTitle from '@/views/detail/component/ArticleTitle.vue'
 import ReplyItem from './component/ReplyItem.vue'
 
-const { aid } = useRoute()?.query || {}
+const { aid, source } = useRoute()?.query || {}
 const dataMap = reactive({
   case: {},
   reply: [],
@@ -54,23 +57,46 @@ const dataMap = reactive({
 // 获取案例详情
 const getCaseDetailHandler = async () => {
   try {
-    const res = await getCusDetailAjax(aid)
+    const res = await getCusDetailAjax(aid, source)
     const { code, data, msg } = JSON.parse(JSON.stringify(res || {}))
     if (code === 0) {
       if (Object.keys(data)?.length) {
         dataMap.case = data.case
         dataMap.reply = data.reply || []
-        const { loginName, dept_name, article_time, created_at, article_form, article_author, grade_name, event_classify_names } = data.case || {}
-        // const { dept_name: name } = depts?.[0] || {}; // 处理部门取值
-        pushList('下发人', loginName)
-        pushList('作者', article_author)
-        pushList('处理部门', '--')
-        pushList('下发部门', dept_name)
-        pushList('信息来源', article_form)
-        pushList('舆情分类', event_classify_names)
-        pushList('下发时间', created_at)
-        pushList('发现时间', article_time)
-        pushList('舆情性质', grade_name)
+        const {
+          loginName,
+          dept_name,
+          article_time,
+          created_at,
+          article_form,
+          article_author,
+          grade_name,
+          event_classify_names,
+          author,
+          leader,
+          create_time_fmt,
+          type_name,
+          domain,
+          stat,
+        } = data.case || {}
+        if (source === '人民网留言') {
+          pushList('用户', author)
+          pushList('留言对象', leader)
+          pushList('领域', domain)
+          pushList('时间', create_time_fmt)
+          pushList('状态', stat)
+          pushList('类型', type_name)
+        } else {
+          pushList('下发人', loginName)
+          pushList('作者', article_author)
+          pushList('处理部门', '--')
+          pushList('下发部门', dept_name)
+          pushList('信息来源', article_form)
+          pushList('舆情分类', event_classify_names)
+          pushList('下发时间', created_at)
+          pushList('发现时间', article_time)
+          pushList('舆情性质', grade_name)
+        }
       }
     } else {
       Message.error(msg)
@@ -134,7 +160,7 @@ onMounted(async () => {
     grid-template-columns: repeat(3, 1fr);
     width: 100%;
     height: 100%;
-    padding: 15px 10px;
+    padding: 15px;
     background: #f7f7f7;
     border-radius: 9px;
     box-sizing: border-box;

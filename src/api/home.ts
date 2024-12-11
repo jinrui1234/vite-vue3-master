@@ -99,9 +99,10 @@ export function getCaseListAjax(word: string) {
 }
 
 // 获取客户案例详情
-export function getCusDetailAjax(aid: number | string) {
+export function getCusDetailAjax(aid: number | string, source: string) {
+  const url = source === '人民网留言' ? '/api/case/v1/people/detail' : '/api/case/v1/detail'
   return request({
-    url: `/api/case/v1/detail?case_id=${aid}`,
+    url: `${url}?case_id=${aid}`,
     method: 'get',
   })
 }

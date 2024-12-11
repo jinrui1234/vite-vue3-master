@@ -1,6 +1,5 @@
 import axios from 'axios'
 import { refreshTicketAjax } from '@/api/auth'
-import { Message } from '@/utils/message'
 import eventBus from '@/utils/mitt'
 import { getStorage, setStorage, clearStorage } from '@/utils/localStorage'
 import useUserStore from '@/store/user'
@@ -96,16 +95,14 @@ service.interceptors.response.use(
 const resetTokenClick = async () => {
   try {
     const res: any = await refreshTicketAjax()
-    const { code, msg, data } = res || {}
+    const { code, data } = res || {}
     if (code === 0) {
       setStorage('token', data.new_refresh_ticket, 0)
       return data.new_refresh_ticket
     } else {
-      Message('error', msg)
       return null
     }
   } catch (error: any) {
-    Message('error', error)
     return null
   }
 }

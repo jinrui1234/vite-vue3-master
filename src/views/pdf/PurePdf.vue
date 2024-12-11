@@ -81,7 +81,7 @@ import LabelWrap from '@/views/aiReport/component/LabelWrap.vue'
 import LevelWrap from '@/views/aiReport/component/LevelWrap.vue'
 import ReportDoor from '@/views/aiReport/component/ReportDoor.vue'
 
-const { id, isHistory, pdfConfig } = useRoute()?.query || {}
+const { id, isHistory } = useRoute()?.query || {}
 const router = useRouter()
 
 const dataMap = reactive({
@@ -112,7 +112,7 @@ const dataMap = reactive({
 // 获取历史详情
 const getReportDetail = () => {
   dataMap.loading = true
-  getOldReportDetailAjax({ id })
+  getOldReportDetailAjax(id, isHistory)
     .then((res: any) => {
       const { code, msg, data } = res || {}
       if (code === 0) {
@@ -152,7 +152,7 @@ const downloadClick = async () => {
     name: 'PurePdf',
     query: {
       isHistory: 0,
-      pdfConfig: JSON.stringify(dataMap),
+      id: id,
     },
   })
   try {
@@ -171,13 +171,13 @@ const downloadClick = async () => {
       document.body.removeChild(a)
     }
   } catch (error) {
-    console.error(error)
+    Message('error', '系统错误,请刷新后重试')
   }
   dataMap.downloadLoading = false
 }
 
 onMounted(() => {
-  Number(isHistory) ? getReportDetail() : setDataMap(pdfConfig)
+  getReportDetail()
 })
 </script>
 

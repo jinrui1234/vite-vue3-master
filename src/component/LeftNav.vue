@@ -144,16 +144,19 @@ const jumpPage = (name: string, label: string) => {
   // 其它
   router.push({
     name: name,
-    query: {
-      tab: label,
-    },
+    query: name !== 'List' ? {} : { tab: label },
   })
 }
 
 watch(
   () => route.fullPath,
   () => {
-    dataMap.currentTool = route?.query?.tab
+    if (route?.name === 'List') {
+      dataMap.currentTool = route?.query?.tab
+    } else {
+      const currentItem = toolList.find((el) => el.name === route?.name)
+      dataMap.currentTool = currentItem?.label || ''
+    }
   },
   {
     immediate: true,

@@ -91,4 +91,7 @@ export const SOURCE_ZH = {
   tieba: '贴吧',
   wangyi: '网易新闻',
   xigua: '西瓜视频',
+  sina: '新浪新闻',
+  pszy: '头条号坪山之眼',
+  dyxc: '头条号第一现场',
 }

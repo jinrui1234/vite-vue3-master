@@ -37,7 +37,6 @@ const jumpPage = ({ id, type = '1' }: any) => {
     query: {
       id: id,
       isHistory: 1,
-      tab: '历史会话',
     },
   })
   window.open(url.href, '_blank')

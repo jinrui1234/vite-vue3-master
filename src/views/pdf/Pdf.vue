@@ -110,7 +110,7 @@ import EventEffect from '@/views/aiReport/component/EventEffect.vue'
 import ChartItem from '@/views/aiReport/component/ChartItem.vue'
 import Empty from '@/views/aiReport/component/Empty.vue'
 
-const { id, isHistory, pdfConfig } = useRoute()?.query || {}
+const { id, isHistory } = useRoute()?.query || {}
 const router = useRouter()
 
 const dataMap = reactive({
@@ -160,7 +160,7 @@ const dataMap = reactive({
 // 获取历史详情
 const getReportDetail = () => {
   dataMap.loading = true
-  getOldReportDetailAjax({ id })
+  getOldReportDetailAjax(id, isHistory)
     .then((res: any) => {
       const { code, msg, data } = res || {}
       if (code === 0) {
@@ -227,7 +227,7 @@ const downloadClick = async () => {
     name: 'Pdf',
     query: {
       isHistory: 0,
-      pdfConfig: JSON.stringify(dataMap),
+      id: id,
     },
   })
   try {
@@ -246,13 +246,13 @@ const downloadClick = async () => {
       document.body.removeChild(a)
     }
   } catch (error) {
-    console.error(error)
+    Message('error', '系统错误,请刷新后重试')
   }
   dataMap.downloadLoading = false
 }
 
 onMounted(() => {
-  Number(isHistory) ? getReportDetail() : setDataMap(pdfConfig)
+  getReportDetail()
 })
 </script>
 <style scoped lang="less">

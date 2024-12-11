@@ -1,9 +1,9 @@
 <template>
   <div class="reply-wrap">
     <img class="icon" src="@/assets/img/list/case-info.png" alt="" />
-    <div class="item">{{ item?.loginName }}</div>
-    <div class="item">部门: {{ item?.deptName }}</div>
-    <div class="item">时间: {{ item?.created_at }}</div>
+    <div class="item">{{ item?.loginName || item?.author }}</div>
+    <div class="item">部门: {{ item?.deptName || item?.dept }}</div>
+    <div class="item">时间: {{ item?.created_at || item?.createdate_fmt }}</div>
   </div>
 </template>
 

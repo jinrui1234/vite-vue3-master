@@ -23,7 +23,6 @@ const goArticle = (index: number, aid: number) => {
     query: {
       source: prop.source,
       aid: aid,
-      tab: '实时热点',
       pos: index + 1,
     },
   })

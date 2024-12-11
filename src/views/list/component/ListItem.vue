@@ -59,7 +59,6 @@ const jumpPage = (name: string, item: any, index: number) => {
     query: {
       aid: item?.aid,
       source: props.source,
-      tab: tab,
       pos: index + 1,
     },
   })
