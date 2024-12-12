@@ -1,7 +1,7 @@
 <template>
   <div class="app-container">
     <!-- 左侧导航栏 -->
-    <LeftNav v-if="!noShow" @login="loginHandle" />
+    <LeftNav v-if="!noShow && !!getShowNav()" @login="loginHandle" />
 
     <!-- 登陆 -->
     <Login :visible="dataMap.visible" @close="dataMap.visible = false" />
@@ -20,6 +20,7 @@ import LeftNav from '@/component/LeftNav.vue'
 import Login from '@/views/login/index.vue'
 
 const route = useRoute()
+
 const dataMap = reactive({
   visible: false,
   noShow: false,
@@ -28,6 +29,10 @@ const dataMap = reactive({
 const noShow = computed(() => {
   return ['Pdf', 'PurePdf'].includes(route.name) && !Number(route.query?.isHistory)
 })
+
+const getShowNav = () => {
+  return !window.location?.href?.includes('/agreement')
+}
 
 const loginHandle = () => {
   if (!dataMap.visible) dataMap.visible = true
@@ -47,9 +52,5 @@ onBeforeUnmount(() => {
   width: 100%;
   height: 100%;
   // min-width: 1440px;
-  background: #d2e9fe;
-  background-image: url('./assets/img/bg-icon.png');
-  background-repeat: no-repeat;
-  background-size: 100% 599px;
 }
 </style>

@@ -25,18 +25,20 @@
 
           <div class="rule-wrap">
             <el-checkbox v-model="dataMap.isProtocol" />
-            <div class="text">已阅读并同意智云万象·舆情分析研判平台帐号 <a href="">用户协议</a> 和 <a href="">隐私政策</a></div>
+            <div class="text">
+              已阅读并同意智云万象·舆情分析研判平台帐号 <span class="tip" @click="jumpPage('0')">用户协议</span> 和
+              <span class="tip" @click="jumpPage('1')">隐私政策</span>
+            </div>
           </div>
         </el-form>
       </div>
     </el-dialog>
   </div>
 </template>
-
 <script setup lang="ts">
 import { reactive, ref, watch } from 'vue'
 import CryptoJS from 'crypto-js'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { setStorage } from '@/utils/localStorage'
 import { Message } from '@/utils/message'
 import { loginAjax } from '@/api/auth'
@@ -44,6 +46,7 @@ import useUserStore from '@/store/user'
 
 const userStore = useUserStore()
 const route = useRoute()
+const router = useRouter()
 
 const emit = defineEmits(['close'])
 const prop = defineProps({
@@ -109,6 +112,16 @@ const submitHandle = () => {
   })
 }
 
+const jumpPage = (type: string) => {
+  const url = router.resolve({
+    name: 'Agreement',
+    query: {
+      type,
+    },
+  })
+  window.open(url.href)
+}
+
 watch(
   () => prop.visible,
   (value: boolean) => {
@@ -159,6 +172,13 @@ watch(
     width: 16px;
     height: 16px;
     margin-top: 2px;
+  }
+  .tip {
+    color: #409eff;
+    cursor: pointer;
+    &:hover {
+      text-decoration: underline;
+    }
   }
   .text {
     line-height: 20px;

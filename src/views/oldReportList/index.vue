@@ -125,6 +125,10 @@ onMounted(() => {
   padding-right: calc(50% - 500px);
   padding-top: 70px;
   padding-bottom: 40px;
+  background: #d2e9fe;
+  background-image: url('@/assets/img/bg-icon.png');
+  background-repeat: no-repeat;
+  background-size: 100% 599px;
   box-sizing: border-box;
   overflow-y: overlay;
   font-family: 'Microsoft YaHei', sans-serif;
