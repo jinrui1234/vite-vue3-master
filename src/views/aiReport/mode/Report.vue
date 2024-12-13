@@ -121,12 +121,13 @@ let webWorker = new Worker(new URL('../worker.js', import.meta.url), {
 })
 const dataMap = reactive({
   keyWord: '',
-  hot_value: '', // 热度值
-
-  source: '', // 数据来源
+  url: '',
   aid: '',
+  source: '', // 数据来源
   selectType: '', // 研判类型
   timeId: '2', // 数据趋势-时间
+
+  hot_value: '', // 热度值
 
   // 事件概述
   summaryPrompt: '',
@@ -150,6 +151,7 @@ const dataMap = reactive({
   casePrompt: '',
   // 历史处置情况-列表
   caseList: [],
+  promptCaseList: [],
   caseListShow: false,
   // 回应处置参考
   filePrompt: '',
@@ -165,6 +167,7 @@ const dataMap = reactive({
 // 重置
 const reset = () => {
   dataMap.keyWord = ''
+  dataMap.url = ''
   dataMap.hot_value = ''
 
   dataMap.summaryPrompt = ''
@@ -190,23 +193,27 @@ const reset = () => {
 // 提交
 const searchClick = async (param: any) => {
   reset()
-  const { source, aid, pos, selectType, keyWord, url, channelRate, list } = param
+  const { source, aid, pos, selectType, keyWord, url = '', channelRate, list } = param
   dataMap.keyWord = keyWord
+  dataMap.url = url
+  dataMap.aid = aid
   dataMap.source = source
   dataMap.selectType = selectType
-  dataMap.aid = aid
+
   try {
     await getChartDateClick(source, aid)
 
-    await getReportPrompt('shijiangaishu', keyWord, '', url)
+    await getReportPrompt({ type: 'shijiangaishu', data: JSON.stringify(dataMap.eventTrendCopy) })
 
-    await getReportPrompt('fengxiandengji', keyWord, '', url)
+    await getReportPrompt({ type: 'fengxiandengji' })
 
     dataMap.caseSourceObj = channelRate
 
-    await getReportPrompt('chuzhijianyi', keyWord, '', url)
+    if (dataMap.selectType === '2') {
+      await getReportPrompt({ type: 'chuzhijianyi' })
+    }
 
-    await getReportPrompt('fengxianyujing', keyWord, '', url)
+    await getReportPrompt({ type: 'fengxianyujing' })
 
     await getReportResultClick(source, aid)
 
@@ -215,17 +222,18 @@ const searchClick = async (param: any) => {
     setChartDateClick(source)
 
     const { caseList, caseContent } = await getCaseListClick(keyWord)
-    await getReportPrompt('lishichuli', keyWord, caseContent, url)
+    await getReportPrompt({ type: 'lishichuli', content: caseContent })
+    // await getReportPrompt({ type: 'shengchenganli' })
     dataMap.caseList = caseList
     dataMap.caseListShow = true
 
     const { fileList, fileContent } = await getFileListClick(keyWord)
-    await getReportPrompt('huiyingchuzhi', keyWord, fileContent, url)
+    await getReportPrompt({ type: 'huiyingchuzhi', content: fileContent })
     dataMap.fileList = fileList
     dataMap.fileListShow = true
 
     const { searchList, searchContent } = getSearchListClick(list)
-    await getReportPrompt('guanlianredian', keyWord, searchContent, url)
+    await getReportPrompt({ type: 'guanlianredian', content: searchContent })
     dataMap.searchList = searchList
 
     statusOperateClick(true, false)
@@ -426,20 +434,19 @@ const getSearchListClick = (list: any) => {
 }
 
 // 获取Prompt结果
-const getReportPrompt = (type: string, prompt: string, content = '', url = '') => {
-  // 当为舆情分析时，展示处置建议
-  if (type === 'chuzhijianyi' && dataMap.selectType !== '2') return
+const getReportPrompt = ({ type, content = '', data = '', regenerate = false, instruction = '', previous_report = '' }: any) => {
   const param: any = {
-    type: type, // 模块名
-    prompt: prompt, // 关键词
-    content: content, // 列表信息(案例、文档、搜索)
-    url: url, // 关键词为链接，文本传空
-    yanpan_type: MODE_PROP[dataMap.selectType], //分析类型
-    version: 'V2', //V1-旧版，V2-新版
+    type,
+    prompt: dataMap.keyWord,
+    data,
+    content,
+    url: dataMap.url,
+    yanpan_type: MODE_PROP[dataMap.selectType],
+    version: 'V2',
+    regenerate,
+    instruction,
+    previous_report,
   }
-
-  // 事件详情 - 传数据趋势
-  if (type === 'shijiangaishu') param.data = JSON.stringify(dataMap.eventTrendCopy)
 
   return fetch(PROMPT_URL, {
     method: 'post',
@@ -457,15 +464,20 @@ const getReportPrompt = (type: string, prompt: string, content = '', url = '') =
         if (prop.isStop) throw new Error('停止生成了')
         return reader.read().then(async ({ done, value }) => {
           if (done) {
-            dataMap[PROMPT_PROP[type]] = type !== 'fengxiandengji' ? deleteLastChar(dataMap[PROMPT_PROP[type]]) : promptText
+            if (type === 'fengxiandengji') {
+              dataMap[PROMPT_PROP[type]] = promptText
+            } else if (type === 'shengchenganli') {
+              dataMap.promptCaseList = promptText
+            } else {
+              dataMap[PROMPT_PROP[type]] = deleteLastChar(dataMap[PROMPT_PROP[type]])
+            }
             return
           }
           try {
             // prompt生成的文本
             const aiText = decoder.decode(value, { stream: true })
-            // console.error("aiText", aiText);
             promptText = promptText + aiText
-            if (type !== 'fengxiandengji') {
+            if (!['fengxiandengji', 'shengchenganli'].includes(type)) {
               await aiOutput(type, promptText)
             }
           } catch (error) {
@@ -522,12 +534,17 @@ const deleteLastChar = (str: string) => {
 }
 
 // 重新提交
-const reSubmit = async (type, word) => {
+const reSubmit = async (type: string, text: string) => {
+  const param = {
+    type: type,
+    regenerate: true,
+    instruction: text,
+    previous_report: dataMap[PROMPT_PROP[type]],
+  }
   try {
     statusOperateClick(false)
     dataMap[PROMPT_PROP[type]] = '|'
-    const text = word || dataMap.keyWord
-    await getReportPrompt(type, text)
+    await getReportPrompt(param)
     statusOperateClick(true)
   } catch (error) {
     statusOperateClick(true)

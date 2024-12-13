@@ -77,7 +77,7 @@ onBeforeUnmount(() => {
   padding-top: 40px;
   padding-bottom: 40px;
   background: #d2e9fe;
-  background-image: url('@/assets/img/bg-icon.png');
+  background-image: url('http://download.ainewdata.com/download/images/wanxiang/bg-icon.png');
   background-repeat: no-repeat;
   background-size: 100% 599px;
   overflow-y: overlay;

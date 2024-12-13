@@ -69,6 +69,7 @@ let webWorker = new Worker(new URL('../worker.js', import.meta.url), {
 })
 const dataMap = reactive({
   keyWord: '',
+  url: '',
 
   selectType: '', // 研判类型
 
@@ -101,6 +102,7 @@ const dataMap = reactive({
 // 重置
 const reset = () => {
   dataMap.keyWord = ''
+  dataMap.url = ''
   dataMap.selectType = ''
 
   dataMap.summaryPrompt = ''
@@ -117,21 +119,24 @@ const searchClick = async (param: any) => {
   reset()
   const { selectType, keyWord, url } = param
   dataMap.keyWord = keyWord
+  dataMap.url = url
   dataMap.selectType = selectType
   try {
-    await getReportPrompt('shijiangaishu', keyWord, '', url)
+    await getReportPrompt({ type: 'shijiangaishu' })
 
-    await getReportPrompt('fengxiandengji', keyWord, '', url)
+    await getReportPrompt({ type: 'fengxiandengji' })
 
-    await getReportPrompt('chuzhijianyi', keyWord, '', url)
+    if (dataMap.selectType === '2') {
+      await getReportPrompt({ type: 'chuzhijianyi' })
+    }
 
-    await getReportPrompt('fengxianyujing', keyWord, '', url)
+    await getReportPrompt({ type: 'fengxianyujing' })
 
-    await getReportPrompt('lishichuli', keyWord, '', url)
+    await getReportPrompt({ type: 'lishichuli' })
 
-    await getReportPrompt('huiyingchuzhi', keyWord, '', url)
+    await getReportPrompt({ type: 'huiyingchuzhi' })
 
-    await getReportPrompt('guanlianredian', keyWord, '', url)
+    await getReportPrompt({ type: 'guanlianredian' })
 
     statusOperateClick(true, false)
   } catch (error) {
@@ -141,16 +146,16 @@ const searchClick = async (param: any) => {
 }
 
 // 获取Prompt结果
-const getReportPrompt = (type: string, prompt: string, content = '', url = '') => {
-  // 当为舆情分析时，展示处置建议
-  if (type === 'chuzhijianyi' && dataMap.selectType !== '2') return
+const getReportPrompt = ({ type, regenerate = false, instruction = '', previous_report = '' }: any) => {
   const param: any = {
-    type: type, // 模块名
-    prompt: prompt, // 关键词
-    content: content, // 列表信息(案例、文档、搜索)
-    url: url, // 关键词为链接，文本传空
-    yanpan_type: MODE_PROP[dataMap.selectType], //分析类型
-    version: 'V2', //V1-旧版，V2-新版
+    type,
+    prompt: dataMap.keyWord,
+    url: dataMap.url,
+    yanpan_type: MODE_PROP[dataMap.selectType],
+    version: 'V2',
+    regenerate,
+    instruction,
+    previous_report,
   }
 
   return fetch(PROMPT_URL, {
@@ -169,15 +174,18 @@ const getReportPrompt = (type: string, prompt: string, content = '', url = '') =
         if (prop.isStop) throw new Error('停止生成了')
         return reader.read().then(async ({ done, value }) => {
           if (done) {
-            dataMap[PROMPT_PROP[type]] = type !== 'fengxiandengji' ? deleteLastChar(dataMap[PROMPT_PROP[type]]) : promptText
+            if (type === 'fengxiandengji') {
+              dataMap[PROMPT_PROP[type]] = promptText
+            } else {
+              dataMap[PROMPT_PROP[type]] = deleteLastChar(dataMap[PROMPT_PROP[type]])
+            }
             return
           }
           try {
             // prompt生成的文本
             const aiText = decoder.decode(value, { stream: true })
-            // console.error("aiText", aiText);
             promptText = promptText + aiText
-            if (type !== 'fengxiandengji') {
+            if (!['fengxiandengji'].includes(type)) {
               await aiOutput(type, promptText)
             }
           } catch (error) {
@@ -224,12 +232,17 @@ const deleteLastChar = (str: string) => {
 }
 
 // 重新提交
-const reSubmit = async (type, word) => {
+const reSubmit = async (type: string, text: string) => {
+  const param = {
+    type: type,
+    regenerate: true,
+    instruction: text,
+    previous_report: dataMap[PROMPT_PROP[type]],
+  }
   try {
     statusOperateClick(false)
     dataMap[PROMPT_PROP[type]] = '|'
-    const text = word || dataMap.keyWord
-    await getReportPrompt(type, text)
+    await getReportPrompt(param)
     statusOperateClick(true)
   } catch (error) {
     statusOperateClick(true)

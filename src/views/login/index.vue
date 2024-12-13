@@ -94,7 +94,7 @@ const submitHandle = () => {
           const { ticket, refresh_ticket } = data || {}
           if (code === 0) {
             setStorage('token', ticket, 0)
-            setStorage('refresh_token', refresh_ticket, 1000 * 3600 * 24 - 10000)
+            setStorage('refresh_token', refresh_ticket, 1000 * 3600 * 24 * 29)
             userStore.setUserInfo(data)
             emit('close')
             Message('success', '登录成功')
