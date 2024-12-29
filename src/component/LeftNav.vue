@@ -1,6 +1,6 @@
 <template>
   <div class="left-nav-container">
-    <img class="logo-icon" src="../assets/img/report/logo-icon.png" @click="jumpPage('AiReport', '新对话')" />
+    <img class="logo-icon" src="../assets/img/report/logo-icon.png" @click="jumpPage('AiReport')" />
 
     <div class="tool-wrap">
       <div
@@ -36,7 +36,7 @@
 <script setup lang="ts">
 import { reactive, watch, computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-import { clearStorage } from '@/utils/localStorage'
+import { getStorage, clearStorage } from '@/utils/localStorage'
 import { Message } from '@/utils/message'
 import eventBus from '@/utils/mitt'
 import { loginOutAjax } from '@/api/auth'
@@ -124,28 +124,38 @@ const transformToUrl = (url: string, label?: string) => {
 }
 
 //页面跳转
-const jumpPage = (name: string, label: string) => {
+const jumpPage = (name: string, label?: string) => {
+  if (!tokenIsExistence()) return
   // 新对话
   if (name === 'AiReport' && route.name === 'AiReport') {
     eventBus.emit('reportStop')
     return
   }
-  // // 历史对话
-  // if (name === 'OldReportList') {
-  //   const url = router.resolve({
-  //     name: 'OldReportList',
-  //     query: {
-  //       tab: label,
-  //     },
-  //   })
-  //   window.open(url.href)
-  //   return
-  // }
-  // 其它
-  router.push({
-    name: name,
-    query: name !== 'List' ? {} : { tab: label },
-  })
+
+  // 历史对话
+  if (name !== 'AiReport') {
+    const url = router.resolve({
+      name: name,
+      query: name !== 'List' ? {} : { tab: label },
+    })
+    window.open(url.href)
+  } else {
+    router.push({
+      name: 'AiReport',
+    })
+  }
+}
+
+// 检查token是否存在
+const tokenIsExistence = () => {
+  const refresh_token = getStorage('refresh_token')
+  if (!refresh_token) {
+    userStore.resetUserInfo()
+    clearStorage()
+    eventBus.emit('loginHandle')
+    return false
+  }
+  return true
 }
 
 watch(
