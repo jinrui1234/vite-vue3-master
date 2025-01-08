@@ -45,9 +45,8 @@ export default defineConfig({
     }),
   ],
   build: {
-    outDir: './h7',
+    outDir: './pc',
   },
-  base: '/h7',
   server: {
     host: '0.0.0.0',
     port: 8080, //启动端口

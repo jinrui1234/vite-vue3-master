@@ -116,6 +116,7 @@ const router = useRouter()
 const dataMap = reactive({
   keyWord: '',
   hot_value: '', // 热度值
+  timeId: '2', // 数据趋势-时间
 
   // 事件概述
   summaryPrompt: '',
@@ -149,9 +150,6 @@ const dataMap = reactive({
   searchPrompt: '',
   // 热点列表
   searchList: [],
-
-  // 数据趋势-时间
-  timeId: '2',
 
   loading: false,
   downloadLoading: false,

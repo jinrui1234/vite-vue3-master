@@ -153,3 +153,13 @@ export const isLink = (str: string) => {
   const pattern = /^(https?:\/\/)[^\s/$.?#].[^\s]*$/
   return pattern.test(str)
 }
+
+// 判断是否为移动端
+export const isMobile = () => {
+  const userAgentInfo = navigator.userAgent
+  const mobileAgents = ['Android', 'iPhone', 'SymbianOS', 'Windows Phone', 'iPad', 'iPod']
+  const mobileFlag = mobileAgents.some((mobileAgent) => {
+    return userAgentInfo.indexOf(mobileAgent) > 0
+  })
+  return mobileFlag
+}

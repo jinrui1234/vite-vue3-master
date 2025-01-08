@@ -1,5 +1,6 @@
 import { RouteRecordRaw, createWebHashHistory, createRouter } from 'vue-router'
 import eventBus from '@/utils/mitt'
+import { isMobile } from '@/utils/util'
 import { getStorage, clearStorage } from '@/utils/localStorage'
 import useUserStore from '@/store/user'
 
@@ -33,7 +34,16 @@ const router = createRouter({
 })
 
 const white = ['/aiReport', '/pdf', '/purePdf', '/agreement']
+let isFirst = true
 router.beforeEach((to, from, next) => {
+  console.log(import.meta.env, import.meta, '111')
+  if (isFirst && isMobile()) {
+    next(false)
+    isFirst = false
+    const url = import.meta.env.VITE_H5_URL
+    window.location.replace(url)
+    return
+  }
   const refresh_token = getStorage('refresh_token')
   if (!!refresh_token) {
     next()

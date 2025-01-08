@@ -1,6 +1,6 @@
 <template>
   <div class="slogan-container">
-    <div class="main-title">你好，我是智能万象·舆情智能研判助手</div>
+    <div class="main-title">你好，我是智云万象·舆情智能研判助手</div>
     <div class="sub-title">根据您关注的事件及热点内容自动生成详细专业的分析报告。</div>
   </div>
 </template>

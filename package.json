@@ -4,8 +4,9 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite --open",
-    "build": "vite build",
+    "dev": "vite --open --mode dev",
+    "build": "vite build --mode prod",
+    "build-dev": "vite build --mode dev",
     "preview": "vite preview",
     "eslint": "eslint src --ext .js,.vue,.ts,.jsx,.tsx --ignore-path .gitignore ",
     "prettier": "prettier --write \"./**/*.{html,vue,ts,js,json,md}\"",
