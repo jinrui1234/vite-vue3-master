@@ -1,3 +1,27 @@
+<!-- {
+  "name": "47.103.197.242",
+  "host": "47.103.197.242",
+  "protocol": "sftp",
+  "port": 22,
+  "username": "root",
+  "remotePath": "/mnt/service/html/wanxiang",
+  "uploadOnSave": false,
+  "useTempFile": false,
+  "openSsh": false
+} -->
+
+<!-- {
+  "name": "47.103.51.242",
+  "host": "47.103.51.242",
+  "protocol": "sftp",
+  "port": 22,
+  "username": "root",
+  "remotePath": "/mnt/service/html/wanxiang",
+  "uploadOnSave": false,
+  "useTempFile": false,
+  "openSsh": false
+} -->
+
 # 十分钟搭建 Vite+Vue3 项目模板
 
 本项目是一个基于 Vite3 搭建的 Vue3 项目模板，集成了 TypeScript、Vue Router、Pinia、Axios、Less、ESLint、Prettier、Husky、lint-staged 等等

@@ -151,3 +151,13 @@ export function pdfDownloadAjax(param: any) {
     data: param,
   })
 }
+
+// 获取大模型流式文本
+export function getReportPromptAjax(param: any, type?: boolean) {
+  const url = type ? 'http://47.102.185.52:80/get_report' : 'http://47.100.50.180:80/get_report'
+  return fetch(url, {
+    method: 'post',
+    headers: { 'Content-Type': 'text/plain' },
+    body: JSON.stringify(param),
+  })
+}

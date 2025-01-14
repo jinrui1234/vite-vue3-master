@@ -35,7 +35,9 @@ import { Message } from '@/utils/message'
 import { isLink } from '@/utils/util'
 import { geSearchListAjax } from '@/api/home'
 import { getCountAjax } from '@/api/auth'
-import { MODE_LIST, MODE_PROP, PROMPT_URL } from '../config'
+import { getReportPromptAjax } from '@/api/home'
+import { MODE_LIST } from '../config'
+
 import TypeList from './TypeList.vue'
 
 const emit = defineEmits(['submit', 'start'])
@@ -48,15 +50,10 @@ defineProps({
 
 const dataMap = reactive({
   textareaValue: '',
-  currentMode: '2', //模式
+  currentMode: 'yqfenxi', //模式
 })
 
-const transformToUrl = (url: string, id?: string) => {
-  const icon = dataMap.currentMode === id ? url + '-s' : url
-  return new URL(`../../../assets/img/report/${icon}.png`, import.meta.url).href
-}
-
-// 模版切换
+// 模式切换
 const modeClick = (id: string) => {
   dataMap.currentMode = id
 }
@@ -96,63 +93,54 @@ const handleSubmit = (value?: string) => {
 }
 
 // 链接获取标题
-const getTitleClick = (url: string) => {
-  fetch(PROMPT_URL, {
-    method: 'post',
-    headers: { 'Content-Type': 'text/plain' },
-    body: JSON.stringify({
-      type: 'huoqubiaoti',
-      prompt: url,
-      version: 'V2',
-      yanpan_type: MODE_PROP[dataMap.currentMode],
-    }),
-  })
-    .then((response) => {
-      return response.body
-    })
-    .then((body: any) => {
-      const reader = body.getReader()
-      const decoder = new TextDecoder()
-      let promptText = ''
-      function read() {
-        return reader.read().then(async ({ done, value }) => {
-          if (done) {
-            if (promptText) {
-              getList(promptText, url)
-            } else {
-              Message('warning', '暂无数据，请重新输入较精确的关键词')
-            }
-            return
+const getTitleClick = async (url: string) => {
+  const param = {
+    type: 'huoqubiaoti',
+    prompt: url,
+    version: 'V2',
+    yanpan_type: dataMap.currentMode,
+  }
+  try {
+    const response = await getReportPromptAjax(param)
+    if (!response.body) return
+    const reader = response.body.getReader()
+    const decoder = new TextDecoder()
+    let promptText = ''
+    let finished = false
+
+    // while循环获取字符串
+    while (!finished) {
+      try {
+        const { done, value } = await reader.read()
+        if (done) {
+          finished = true
+          if (promptText) {
+            getList(promptText, url)
+          } else {
+            Message('warning', '暂无数据，请重新输入较精确的关键词')
           }
-          try {
-            const data = decoder.decode(value, { stream: true })
-            const { status, topic } = JSON.parse(data || '{}')
-            if (status === '200') {
-              promptText = promptText + topic
-            }
-          } catch (error) {
-            console.error('获取标题失败', error)
-          }
-          return read()
-        })
+        } else {
+          // 字节流转字符串
+          const data = decoder.decode(value, { stream: true })
+          const { status, topic } = JSON.parse(data || '{}')
+          if (status === '200') promptText = promptText + topic
+        }
+      } catch (error) {
+        console.error('发生错误1:', error)
       }
-      return read()
-    })
-    .catch((error) => {
-      console.error('获取标题失败', error)
-    })
+    }
+  } catch (error) {
+    console.error('发生错误:', error)
+  }
 }
 
 // 获取关联热点列表
 const getList = async (text: string, url: string) => {
   emit('start', text)
   let firstItem: any = {}
-  let dataSourceObj: any = {}
-  let searchList: any = []
   try {
     const res: any = await geSearchListAjax(text)
     const { list, channel_rate } = JSON.parse(JSON.stringify(res?.data || {}))
-    dataSourceObj = channel_rate || {}
     if (res?.code === 0) {
       // list无数据
       if (!list?.length) {
@@ -169,7 +157,6 @@ const getList = async (text: string, url: string) => {
       list.forEach((el: any, index: number) => {
         el.pos = index + 1
       })
-      searchList = list ?? []
       const listCopy = list?.slice(0, 10)
       // 优选选取展示的数据顺序
       let selectedItem1 = null
@@ -183,19 +170,18 @@ const getList = async (text: string, url: string) => {
       const selectedItem3 = listCopy?.find((el: any) => el.source === 'toutiao')
 
       firstItem = selectedItem1 || selectedItem2 || selectedItem3 || list?.[0] || {}
-      const { source, aid, title, pos } = firstItem || {}
+      const { source, aid, pos } = firstItem || {}
 
       if (source && aid) {
         emit('submit', {
-          source,
-          aid,
-          title: title,
           keyWord: text,
           url,
+          source,
+          aid,
           pos,
-          list: searchList,
+          list: list ?? [],
           selectType: dataMap.currentMode,
-          channelRate: dataSourceObj,
+          channelRate: channel_rate,
           reportMode: '1',
         })
         dataMap.textareaValue = ''
@@ -206,6 +192,12 @@ const getList = async (text: string, url: string) => {
   } catch (error) {
     console.error('获取列表失败', error)
   }
+}
+
+// 图片路径转换
+const transformToUrl = (url: string, id?: string) => {
+  const icon = dataMap.currentMode === id ? url + '-s' : url
+  return new URL(`../../../assets/img/report/${icon}.png`, import.meta.url).href
 }
 
 defineExpose({

@@ -50,20 +50,20 @@
 import { reactive, onMounted, onBeforeUnmount } from 'vue'
 import { marked } from 'marked'
 import { useWatermark } from '@/utils/waterMark'
-import { PROMPT_PROP, MODE_PROP, PROMPT_URL } from '../config'
+import { PROMPT_PROP } from '../config'
+import { getReportPromptAjax } from '@/api/home'
 
 import LabelWrap from '../component/LabelWrap.vue'
 import LevelWrap from '../component/LevelWrap.vue'
 
 const emit = defineEmits(['statusOperate'])
-
 const prop = defineProps({
   isStop: {
     type: Boolean,
   },
 })
 
-const { setWatermark, clear } = useWatermark()
+const { setWatermark, clearWatermark } = useWatermark()
 let webWorker = new Worker(new URL('../worker.js', import.meta.url), {
   type: 'module',
 })
@@ -102,8 +102,6 @@ const dataMap = reactive({
 // 重置
 const reset = () => {
   dataMap.keyWord = ''
-  dataMap.url = ''
-  dataMap.selectType = ''
 
   dataMap.summaryPrompt = ''
   dataMap.eventLevel = ''
@@ -126,7 +124,7 @@ const searchClick = async (param: any) => {
 
     await getReportPrompt({ type: 'fengxiandengji' })
 
-    if (dataMap.selectType === '2') {
+    if (dataMap.selectType === 'yqfenxi') {
       await getReportPrompt({ type: 'chuzhijianyi' })
     }
 
@@ -146,72 +144,60 @@ const searchClick = async (param: any) => {
 }
 
 // 获取Prompt结果
-const getReportPrompt = ({ type, regenerate = false, instruction = '', previous_report = '' }: any) => {
+const getReportPrompt = async ({ type, regenerate = false, instruction = '', previous_report = '' }: any) => {
   const param: any = {
     type,
     prompt: dataMap.keyWord,
     url: dataMap.url,
-    yanpan_type: MODE_PROP[dataMap.selectType],
+    yanpan_type: dataMap.selectType,
     version: 'V2',
     regenerate,
     instruction,
     previous_report,
   }
 
-  return fetch(PROMPT_URL, {
-    method: 'post',
-    headers: { 'Content-Type': 'text/plain' },
-    body: JSON.stringify(param),
-  })
-    .then((response) => {
-      return response.body
-    })
-    .then((body: any) => {
-      const reader = body.getReader()
-      const decoder = new TextDecoder()
-      let promptText = ''
-      function read() {
-        if (prop.isStop) throw new Error('停止生成了')
-        return reader.read().then(async ({ done, value }) => {
-          if (done) {
-            if (type === 'fengxiandengji') {
-              dataMap[PROMPT_PROP[type]] = promptText
-            } else {
-              dataMap[PROMPT_PROP[type]] = deleteLastChar(dataMap[PROMPT_PROP[type]])
-            }
-            return
-          }
-          try {
-            // prompt生成的文本
-            const aiText = decoder.decode(value, { stream: true })
-            promptText = promptText + aiText
-            if (!['fengxiandengji'].includes(type)) {
-              await aiOutput(type, promptText)
-            }
-          } catch (error) {
-            console.error('发生错误:', error)
-          }
-          return read()
-        })
-      }
-      return read()
-    })
-    .catch((error) => {
-      console.error('发生错误2:', error)
-      throw new Error(error)
-    })
-}
+  try {
+    const response = await getReportPromptAjax(param)
+    if (!response.body) return
+    const reader = response.body.getReader()
+    const decoder = new TextDecoder()
+    let promptText = ''
+    let outText = ''
+    let finished = false
 
-// 渐进式输出
-const aiOutput = async (type, word) => {
-  let num = 0
-  if (dataMap[PROMPT_PROP[type]]?.endsWith('|')) {
-    num = dataMap[PROMPT_PROP[type]]?.length - 1
-  }
-  for (let i = num; i < word.length; i++) {
-    if (!word[i]) break
-    dataMap[PROMPT_PROP[type]] = deleteLastChar(dataMap[PROMPT_PROP[type]]) + word.charAt(i) + '|'
-    await delayTimeClick()
+    // while循环获取字符串
+    while (!finished && !prop.isStop) {
+      try {
+        const { done, value } = await reader.read()
+        if (done) {
+          finished = true
+          if (param.type !== 'fengxiandengji') {
+            dataMap[PROMPT_PROP[type]] = deleteLastChar(outText)
+          }
+        } else {
+          // 字节流转字符串
+          const newText = decoder.decode(value, { stream: true })
+          const num = promptText?.length
+          promptText = promptText + newText
+
+          if (param.type === 'fengxiandengji') {
+            dataMap[PROMPT_PROP[type]] = promptText
+          } else {
+            for (let i = num; i < promptText.length; i++) {
+              outText = deleteLastChar(outText) + promptText.charAt(i) + '|'
+              dataMap[PROMPT_PROP[type]] = outText
+              await delayTimeClick()
+            }
+          }
+        }
+      } catch (error) {
+        console.error('发生错误1:', error)
+      }
+    }
+    if (prop.isStop) throw new Error('停止生成了')
+  } catch (error: any) {
+    console.error('发生错误2:', error)
+    throw new Error(error)
   }
 }
 
@@ -223,12 +209,6 @@ const delayTimeClick = () => {
       resolve(true)
     }
   })
-}
-
-// 删除字符串最后一位
-const deleteLastChar = (str: string) => {
-  if (!str) return ''
-  return str.slice(0, -1)
 }
 
 // 重新提交
@@ -260,7 +240,7 @@ onMounted(() => {
 })
 
 onBeforeUnmount(() => {
-  clear()
+  clearWatermark()
   reset()
   if (webWorker) {
     webWorker.terminate()

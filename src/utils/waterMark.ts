@@ -15,7 +15,7 @@ export function useWatermark(op = 0.05, appendEl: HTMLElement | null = document.
   }
 
   const createWatermark = () => {
-    clear()
+    clearWatermark()
 
     const can = document.createElement('canvas')
     can.width = 300
@@ -47,7 +47,7 @@ export function useWatermark(op = 0.05, appendEl: HTMLElement | null = document.
     return id
   }
 
-  const clear = () => {
+  const clearWatermark = () => {
     const domId = document.getElementById(id)
     if (domId) {
       const el = appendEl
@@ -60,5 +60,5 @@ export function useWatermark(op = 0.05, appendEl: HTMLElement | null = document.
     createWatermark(markText)
   }
 
-  return { setWatermark, clear }
+  return { setWatermark, clearWatermark }
 }

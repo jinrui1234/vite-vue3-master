@@ -52,7 +52,7 @@
       <!-- 话题趋势 -->
       <template v-if="dataMap.hot_value">
         <HotWrap :hot="dataMap.hot_value" />
-        <TimeTab style="margin-bottom: 20px" :id="dataMap.timeId" />
+        <TimeTab style="margin-bottom: 20px" :id="dataMap.timeId" @tab-change="timeTabClick" />
       </template>
 
       <template v-if="dataMap.eventTrend?.length">
@@ -90,13 +90,15 @@
   </div>
 </template>
 <script setup lang="ts">
-import { reactive, onMounted } from 'vue'
+import { reactive, onMounted, onBeforeUnmount } from 'vue'
 import { marked } from 'marked'
 import { getOldReportDetailAjax } from '@/api/history'
 import { useRoute, useRouter } from 'vue-router'
 import { Message } from '@/utils/message'
 import { getHost } from '@/utils/util'
+import { useWatermark } from '@/utils/waterMark'
 import { pdfDownloadAjax } from '@/api/home'
+import { getCurveDateClick } from '@/views/aiReport/ajax.js'
 
 import ReportDoor from '@/views/aiReport/component/ReportDoor.vue'
 import LabelWrap from '@/views/aiReport/component/LabelWrap.vue'
@@ -110,11 +112,14 @@ import EventEffect from '@/views/aiReport/component/EventEffect.vue'
 import ChartItem from '@/views/aiReport/component/ChartItem.vue'
 import Empty from '@/views/aiReport/component/Empty.vue'
 
+const { setWatermark, clearWatermark } = useWatermark()
 const { id, isHistory } = useRoute()?.query || {}
 const router = useRouter()
 
 const dataMap = reactive({
   keyWord: '',
+  aid: '',
+  source: '',
   hot_value: '', // 热度值
   timeId: '2', // 数据趋势-时间
 
@@ -179,6 +184,8 @@ const getReportDetail = () => {
 const setDataMap = (param: any) => {
   const config = JSON.parse(param || '{}')
   dataMap.keyWord = config.keyWord
+  dataMap.aid = config.aid
+  dataMap.source = config.source
   dataMap.hot_value = config.hot_value // 热度值
 
   // 事件概述
@@ -218,6 +225,13 @@ const setDataMap = (param: any) => {
   dataMap.timeId = config.timeId
 }
 
+// 图表时间选择
+const timeTabClick = async (id: number | string) => {
+  dataMap.timeId = id
+  const { curveDealDate } = await getCurveDateClick(dataMap.source, dataMap.aid, id)
+  dataMap.eventTrend = curveDealDate
+}
+
 //下载
 const downloadClick = async () => {
   dataMap.downloadLoading = true
@@ -251,6 +265,11 @@ const downloadClick = async () => {
 
 onMounted(() => {
   getReportDetail()
+  setWatermark()
+})
+
+onBeforeUnmount(() => {
+  clearWatermark()
 })
 </script>
 <style scoped lang="less">

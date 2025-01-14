@@ -27,11 +27,12 @@
         </div>
       </template>
 
-      <!-- 停止/重新生成按钮 -->
+      <!-- 停止生成 -->
       <div class="stop-btn" v-if="!dataMap.isStop" @click="stopBtnClick">
         <img src="@/assets/img/report/earth-icon.webp" alt="" />
         <span>停止生成</span>
       </div>
+      <!-- 重新生成 -->
       <div class="stop-btn" v-else @click="resetBtnClick">
         <img src="@/assets/img/report/reset-icon.png" alt="" />
         <span>重新生成</span>
@@ -62,7 +63,6 @@ import { saveOldReportAjax } from '@/api/history'
 import Slogan from './component/Slogan.vue'
 import Search from './component/Search.vue'
 import ReportDoor from './component/ReportDoor.vue'
-
 import FooterBar from '@/component/FooterBar.vue'
 
 import Report from './mode/Report.vue'
@@ -86,12 +86,6 @@ const dataMap = reactive({
   isStop: true,
   downloadLoading: false,
 })
-
-// 状态设置
-const statusOperateClick = (isStop: any, loading: any) => {
-  if (isStop !== 'undefined') dataMap.isStop = isStop
-  if (loading !== 'undefined') dataMap.loading = loading
-}
 
 // 开始搜索
 const onStart = (text: string) => {
@@ -118,6 +112,24 @@ const reportStopClick = () => {
   dataMap.keyWord = ''
   dataMap.reportMode = ''
   stopBtnClick()
+}
+
+// 停止生成
+const stopBtnClick = () => {
+  dataMap.isStop = true
+  dataMap.loading = false
+}
+
+//重新生成
+const resetBtnClick = () => {
+  dataMap.reportMode === '1' ? reportRef.value?.reset() : pureReportRef.value?.reset()
+  searchRef.value?.getCountClick(dataMap.keyWord)
+}
+
+// 状态设置
+const statusOperateClick = (isStop: any, loading: any) => {
+  if (isStop !== 'undefined') dataMap.isStop = isStop
+  if (loading !== 'undefined') dataMap.loading = loading
 }
 
 //下载
@@ -153,7 +165,7 @@ const downloadClick = async () => {
   dataMap.downloadLoading = false
 }
 
-// 保存历史报告
+// 保存报告
 const saveOldReportClick = () => {
   const content = dataMap.reportMode === '1' ? reportRef.value?.dataMap : pureReportRef.value?.dataMap
   const param = {
@@ -173,18 +185,6 @@ const saveOldReportClick = () => {
     .catch((error) => {
       Message('error', error)
     })
-}
-
-// 停止生成
-const stopBtnClick = () => {
-  dataMap.isStop = true
-  dataMap.loading = false
-}
-
-//重新生成
-const resetBtnClick = () => {
-  dataMap.reportMode === '1' ? reportRef.value?.reset() : pureReportRef.value?.reset()
-  searchRef.value?.getCountClick(dataMap.keyWord)
 }
 
 // 更新报告使用次数

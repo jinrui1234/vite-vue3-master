@@ -18,9 +18,6 @@
             <img src="../../assets/img/login/eye-close-icon.png" alt="" v-else @click="passwordShowClick" />
           </el-form-item>
 
-          <!-- <div class="record-wrap">
-            <el-checkbox>记住我</el-checkbox>
-          </div> -->
           <el-button type="primary" :disabled="!dataMap.isProtocol" :dark="!dataMap.isProtocol" @click="submitHandle">登录</el-button>
 
           <div class="rule-wrap">

@@ -69,18 +69,20 @@
 </template>
 
 <script setup lang="ts">
-import { reactive, onMounted } from 'vue'
+import { reactive, onMounted, onBeforeUnmount } from 'vue'
 import { marked } from 'marked'
 import { getOldReportDetailAjax } from '@/api/history'
 import { useRoute, useRouter } from 'vue-router'
 import { Message } from '@/utils/message'
 import { getHost } from '@/utils/util'
+import { useWatermark } from '@/utils/waterMark'
 import { pdfDownloadAjax } from '@/api/home'
 
 import LabelWrap from '@/views/aiReport/component/LabelWrap.vue'
 import LevelWrap from '@/views/aiReport/component/LevelWrap.vue'
 import ReportDoor from '@/views/aiReport/component/ReportDoor.vue'
 
+const { setWatermark, clearWatermark } = useWatermark()
 const { id, isHistory } = useRoute()?.query || {}
 const router = useRouter()
 
@@ -178,6 +180,11 @@ const downloadClick = async () => {
 
 onMounted(() => {
   getReportDetail()
+  setWatermark()
+})
+
+onBeforeUnmount(() => {
+  clearWatermark()
 })
 </script>
 

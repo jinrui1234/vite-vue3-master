@@ -57,7 +57,6 @@
       :list="dataMap.caseList"
       :isStop="isStop"
       :listShow="dataMap.caseListShow"
-      @click-case="clickCaseHandle"
       @re-submit="reSubmit('lishichuli', $event)"
     >
       <div class="prompt" v-html="marked(dataMap.casePrompt)"></div>
@@ -93,9 +92,10 @@
 import { reactive, onMounted, onBeforeUnmount } from 'vue'
 import { marked } from 'marked'
 import { useWatermark } from '@/utils/waterMark'
-import { PROMPT_PROP, EFFECT_PROP, MODE_PROP, ECHART_LABEL, SOURCE_ZH, PROMPT_URL } from '../config'
-import { bigNumberTransform, formatData, minTransformHour, isExistence } from '@/utils/util'
-import { getDetailAjax, getReportResultAjax, getEchartDataAjax, getCaseListAjax, getFileListAjax } from '@/api/home'
+import { deleteLastChar } from '@/utils/util'
+import { PROMPT_PROP, PROMPT_WHITE_TYPE } from '../config'
+import { getCurveDateClick, getReportResultClick, getCaseListClick, getFileListClick, getArticleDateClick } from '@/views/aiReport/ajax.js'
+import { getReportPromptAjax } from '@/api/home'
 
 import LabelWrap from '../component/LabelWrap.vue'
 import LevelWrap from '../component/LevelWrap.vue'
@@ -115,19 +115,20 @@ const prop = defineProps({
   },
 })
 
-const { setWatermark, clear } = useWatermark()
+const { setWatermark, clearWatermark } = useWatermark()
 let webWorker = new Worker(new URL('../worker.js', import.meta.url), {
   type: 'module',
 })
+
 const dataMap = reactive({
   keyWord: '',
   url: '',
   aid: '',
   source: '', // 数据来源
   selectType: '', // 研判类型
-  timeId: '2', // 数据趋势-时间
-
   hot_value: '', // 热度值
+
+  timeId: '2', // 数据趋势-时间
 
   // 事件概述
   summaryPrompt: '',
@@ -143,31 +144,29 @@ const dataMap = reactive({
   warningPrompt: '',
   // 数据汇总
   eventDataCollection: [],
+
   // 数据趋势
   eventTrend: [],
-  eventTrendCopy: {},
 
   // 历史处置情况
   casePrompt: '',
-  // 历史处置情况-列表
+  casePromptList: [],
   caseList: [],
-  promptCaseList: [],
   caseListShow: false,
+
   // 回应处置参考
   filePrompt: '',
-  // 回应处置参考-列表
   fileList: [],
   fileListShow: false,
+
   // 关联热点
   searchPrompt: '',
-  // 热点列表
   searchList: [],
 })
 
 // 重置
 const reset = () => {
   dataMap.keyWord = ''
-  dataMap.url = ''
   dataMap.hot_value = ''
 
   dataMap.summaryPrompt = ''
@@ -175,12 +174,12 @@ const reset = () => {
   dataMap.caseSourceObj = {}
   dataMap.advicePrompt = ''
   dataMap.warningPrompt = ''
-
   dataMap.eventEffect = []
   dataMap.eventDataCollection = []
   dataMap.eventTrend = []
 
   dataMap.casePrompt = ''
+  dataMap.casePromptList = []
   dataMap.caseList = []
   dataMap.caseListShow = false
   dataMap.filePrompt = ''
@@ -201,37 +200,52 @@ const searchClick = async (param: any) => {
   dataMap.selectType = selectType
 
   try {
-    await getChartDateClick(source, aid)
+    // 数据趋势
+    const { curveDate, curveDealDate } = await getCurveDateClick(source, aid, dataMap.timeId)
 
-    await getReportPrompt({ type: 'shijiangaishu', data: JSON.stringify(dataMap.eventTrendCopy) })
+    // 事件概述
+    await getReportPrompt({ type: 'shijiangaishu', data: JSON.stringify(curveDate) })
 
+    // 风险等级
     await getReportPrompt({ type: 'fengxiandengji' })
 
+    // 数据来源
     dataMap.caseSourceObj = channelRate
 
-    if (dataMap.selectType === '2') {
+    // 处置建议
+    if (dataMap.selectType === 'yqfenxi') {
       await getReportPrompt({ type: 'chuzhijianyi' })
     }
 
+    // 风险预警
     await getReportPrompt({ type: 'fengxianyujing' })
 
-    await getReportResultClick(source, aid)
+    //事件影响力
+    const { eventEffect } = await getReportResultClick(source, aid)
+    dataMap.eventEffect = eventEffect
 
-    await getArticleDateClick(source, aid, pos)
+    //数据总览
+    const { hot_value, eventDataCollection } = await getArticleDateClick(source, aid, pos)
+    dataMap.hot_value = hot_value
+    dataMap.eventDataCollection = eventDataCollection
 
-    setChartDateClick(source)
+    // 数据趋势
+    dataMap.eventTrend = curveDealDate
 
+    // 历史处置情况
     const { caseList, caseContent } = await getCaseListClick(keyWord)
-    await getReportPrompt({ type: 'lishichuli', content: caseContent })
     // await getReportPrompt({ type: 'shengchenganli' })
+    await getReportPrompt({ type: 'lishichuli', content: caseContent })
     dataMap.caseList = caseList
     dataMap.caseListShow = true
 
+    // 回应处置参考
     const { fileList, fileContent } = await getFileListClick(keyWord)
     await getReportPrompt({ type: 'huiyingchuzhi', content: fileContent })
     dataMap.fileList = fileList
     dataMap.fileListShow = true
 
+    // 关联热点
     const { searchList, searchContent } = getSearchListClick(list)
     await getReportPrompt({ type: 'guanlianredian', content: searchContent })
     dataMap.searchList = searchList
@@ -240,185 +254,6 @@ const searchClick = async (param: any) => {
   } catch (error) {
     statusOperateClick(true, false)
     console.error('发生错误3:', error)
-  }
-}
-
-// 获取数据趋势
-const getChartDateClick = async (source, aid) => {
-  try {
-    const res: any = await getEchartDataAjax(source, dataMap.timeId, aid)
-    const { code, data } = res || {}
-    if (code === 0) {
-      dataMap.eventTrendCopy = JSON.parse(JSON.stringify(data))
-    }
-  } catch (error) {
-    console.error('获取数据趋势:', error)
-  }
-}
-
-const setChartDateClick = async (source: string) => {
-  const obj = dataMap.eventTrendCopy
-  let arr: any = []
-  Object.keys(obj)?.forEach((el) => {
-    if (ECHART_LABEL[el] && obj[el]?.length) {
-      const x = []
-      const y = []
-      const y2 = ['0']
-      obj[el].forEach((item: any) => {
-        const timeMode = ['1', '2'].includes(dataMap.timeId) ? 'hour' : 'day'
-        x.push(formatData(item.time, timeMode))
-        y.push(item.num)
-      })
-      obj[`${el}_diff`].forEach((item: any) => {
-        y2.push(item.num)
-      })
-      arr.push({
-        name: ECHART_LABEL[el],
-        id: el,
-        x: x,
-        y: y,
-        y2: y2,
-      })
-    }
-  })
-
-  // 把热度值图表放到前面
-  const index = arr.findIndex((el: any) => el.name === '热度值')
-  if (index !== -1) {
-    const Item = arr.splice(index, 1)[0]
-    arr.unshift(Item)
-  }
-
-  // 当数据源为头条时,去除互动量数据
-  if (source === 'toutiao') {
-    arr = arr?.filter((el: any) => el.name !== '互动量')
-  }
-
-  dataMap.eventTrend = arr
-}
-
-// 事件影响力
-const getReportResultClick = async (source: string, aid: string) => {
-  try {
-    const res: any = await getReportResultAjax(source, aid)
-    const { code, data } = res || {}
-    if (code === 0 && data) {
-      const arr: any = []
-      Object.keys(data)?.forEach((el) => {
-        if (!data[el] || !EFFECT_PROP[el]) return
-        arr.push({
-          name: EFFECT_PROP[el],
-          value: data[el],
-        })
-      })
-      dataMap.eventEffect = arr
-    }
-  } catch (error: any) {
-    console.error('事件影响力:', error)
-  }
-}
-
-// 特殊源(特殊源无最高位次，用当前列表位次代替)
-const isSpecialSource = (source: string) => {
-  return ['weibo', 'zhihu', 'baidu'].includes(source)
-}
-
-// 获取文章详情（数据汇总）
-const getArticleDateClick = async (source, aid, pos) => {
-  try {
-    const res: any = await getDetailAjax(source, aid)
-    const { code, data } = res || {}
-    if (code === 0 && data) {
-      const { duration, read, interact, comment, origin, rank, collect, share, hot_value } = (data || {}) as any
-      const arr: any = []
-      dataMap.hot_value = getHot(hot_value)
-
-      if (rank || isSpecialSource(source)) {
-        arr.push({
-          name: isSpecialSource(source) ? '搜索结果位置' : `${SOURCE_ZH[source]}热搜榜最高位置`,
-          num: isSpecialSource(source) ? pos : rank,
-          unit: '位',
-        })
-      }
-      if (duration) {
-        arr.push({
-          name: '在榜时间',
-          num: minTransformHour(duration),
-          unit: '小时',
-        })
-      }
-      if (isExistence(collect)) arr.push(getObj(collect, '收藏量'))
-      if (isExistence(comment)) arr.push(getObj(comment, '评论量'))
-      // 当数据源为头条时,去除互动量数据
-      if (isExistence(interact) && source !== 'toutiao') {
-        arr.push(getObj(interact, '互动量'))
-      }
-      if (isExistence(origin)) arr.push(getObj(origin, '原创量'))
-      if (isExistence(read)) arr.push(getObj(read, '阅读量'))
-      if (isExistence(share)) arr.push(getObj(share, '分享量'))
-      dataMap.eventDataCollection = arr
-    }
-  } catch (error: any) {
-    console.error('获取文章详情:', error)
-  }
-}
-
-// 获取热度值
-const getHot = (value: any) => {
-  return value ? bigNumberTransform(parseInt(value), true, 2) : '-'
-}
-
-// 数据处理
-const getObj = (count: number, title: string) => {
-  const [num, tip] = bigNumberTransform(Number(count))
-  return {
-    name: title,
-    num: num || 0,
-    unit: tip,
-  }
-}
-
-// 获取案例列表
-const getCaseListClick = async (keyWord: string) => {
-  try {
-    const res = await getCaseListAjax(keyWord)
-    const { code, data, msg } = JSON.parse(JSON.stringify(res || {}))
-    if (code === 0) {
-      const newList = data?.length ? data.slice(0, 10) : []
-      const content = newList.map((el: any) => `${el.case_id}-${el.title}`)
-      return {
-        caseList: newList,
-        caseContent: content?.join(','),
-      }
-    } else {
-      console.error('获取案例列表:', msg)
-      return {}
-    }
-  } catch (error) {
-    console.error('获取案例列表:', error)
-    return {}
-  }
-}
-
-// 获取文档列表
-const getFileListClick = async (keyWord: string) => {
-  try {
-    const res = await getFileListAjax(keyWord)
-    const { code, data, msg } = JSON.parse(JSON.stringify(res || {}))
-    if (code === 0) {
-      const newList = data?.length ? data.slice(0, 10) : []
-      const content = newList.map((el: any) => `${el.doc_id}-${el.title}`)
-      return {
-        fileList: newList,
-        fileContent: content?.join(','),
-      }
-    } else {
-      console.error('获取文档列表报错:', msg)
-      return {}
-    }
-  } catch (error) {
-    console.error('获取文档列表报错:', error)
-    return {}
   }
 }
 
@@ -434,76 +269,62 @@ const getSearchListClick = (list: any) => {
 }
 
 // 获取Prompt结果
-const getReportPrompt = ({ type, content = '', data = '', regenerate = false, instruction = '', previous_report = '' }: any) => {
+const getReportPrompt = async ({ type, content = '', data = '', regenerate = false, instruction = '', previous_report = '' }: any) => {
   const param: any = {
     type,
     prompt: dataMap.keyWord,
     data,
     content,
     url: dataMap.url,
-    yanpan_type: MODE_PROP[dataMap.selectType],
+    yanpan_type: dataMap.selectType,
     version: 'V2',
     regenerate,
     instruction,
     previous_report,
   }
+  const flag = type === 'shengchenganli' ? true : false
+  try {
+    const response = await getReportPromptAjax(param, flag)
+    if (!response.body) return
+    const reader = response.body.getReader()
+    const decoder = new TextDecoder()
+    let promptText = ''
+    let outText = ''
+    let finished = false
 
-  return fetch(PROMPT_URL, {
-    method: 'post',
-    headers: { 'Content-Type': 'text/plain' },
-    body: JSON.stringify(param),
-  })
-    .then((response) => {
-      return response.body
-    })
-    .then((body: any) => {
-      const reader = body.getReader()
-      const decoder = new TextDecoder()
-      let promptText = ''
-      function read() {
-        if (prop.isStop) throw new Error('停止生成了')
-        return reader.read().then(async ({ done, value }) => {
-          if (done) {
-            if (type === 'fengxiandengji') {
-              dataMap[PROMPT_PROP[type]] = promptText
-            } else if (type === 'shengchenganli') {
-              dataMap.promptCaseList = promptText
-            } else {
-              dataMap[PROMPT_PROP[type]] = deleteLastChar(dataMap[PROMPT_PROP[type]])
-            }
-            return
+    // while循环获取字符串
+    while (!finished && !prop.isStop) {
+      try {
+        const { done, value } = await reader.read()
+        if (done) {
+          finished = true
+          if (PROMPT_WHITE_TYPE.includes(param.type)) {
+            dataMap[PROMPT_PROP[type]] = promptText
+          } else {
+            dataMap[PROMPT_PROP[type]] = deleteLastChar(outText)
           }
-          try {
-            // prompt生成的文本
-            const aiText = decoder.decode(value, { stream: true })
-            promptText = promptText + aiText
-            if (!['fengxiandengji', 'shengchenganli'].includes(type)) {
-              await aiOutput(type, promptText)
+        } else {
+          // 字节流转字符串
+          const newText = decoder.decode(value, { stream: true })
+          const num = promptText?.length
+          promptText = promptText + newText
+
+          if (!PROMPT_WHITE_TYPE.includes(param.type)) {
+            for (let i = num; i < promptText.length; i++) {
+              outText = deleteLastChar(outText) + promptText.charAt(i) + '|'
+              dataMap[PROMPT_PROP[type]] = outText
+              await delayTimeClick()
             }
-          } catch (error) {
-            console.error('发生错误:', error)
           }
-          return read()
-        })
+        }
+      } catch (error) {
+        console.error('发生错误1:', error)
       }
-      return read()
-    })
-    .catch((error) => {
-      console.error('发生错误2:', error)
-      throw new Error(error)
-    })
-}
-
-// 渐进式输出
-const aiOutput = async (type, word) => {
-  let num = 0
-  if (dataMap[PROMPT_PROP[type]]?.endsWith('|')) {
-    num = dataMap[PROMPT_PROP[type]]?.length - 1
-  }
-  for (let i = num; i < word.length; i++) {
-    if (!word[i]) break
-    dataMap[PROMPT_PROP[type]] = deleteLastChar(dataMap[PROMPT_PROP[type]]) + word.charAt(i) + '|'
-    await delayTimeClick()
+    }
+    if (prop.isStop) throw new Error('停止生成了')
+  } catch (error: any) {
+    console.error('发生错误2:', error)
+    throw new Error(error)
   }
 }
 
@@ -520,17 +341,8 @@ const delayTimeClick = () => {
 // 图表时间选择
 const timeTabClick = async (id: number | string) => {
   dataMap.timeId = id
-  await getChartDateClick(dataMap.source, dataMap.aid)
-  setChartDateClick(dataMap.source)
-}
-
-// 展示案例详情
-const clickCaseHandle = () => {}
-
-// 删除字符串最后一位
-const deleteLastChar = (str: string) => {
-  if (!str) return ''
-  return str.slice(0, -1)
+  const { curveDealDate } = await getCurveDateClick(dataMap.source, dataMap.aid, id)
+  dataMap.eventTrend = curveDealDate
 }
 
 // 重新提交
@@ -562,8 +374,8 @@ onMounted(() => {
 })
 
 onBeforeUnmount(() => {
-  clear()
   reset()
+  clearWatermark()
   if (webWorker) {
     webWorker.terminate()
     webWorker = null

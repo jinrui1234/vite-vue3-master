@@ -46,7 +46,7 @@ import TagList from './component/TagList.vue'
 import ProgressItem from './component/ProgressItem.vue'
 import ReportDoor from './component/ReportDoor.vue'
 
-const { setWatermark, clear } = useWatermark()
+const { setWatermark, clearWatermark } = useWatermark()
 
 const { loading, title, link, hot_value, timeId, infoList, reportData, detailList, summerList, chartDate, setTime } = useInfo()
 
@@ -65,7 +65,7 @@ onMounted(() => {
 })
 
 onBeforeUnmount(() => {
-  clear()
+  clearWatermark()
 })
 </script>
 <style lang="less" scoped>

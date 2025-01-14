@@ -163,3 +163,18 @@ export const isMobile = () => {
   })
   return mobileFlag
 }
+
+// 删除字符串最后一位
+export const deleteLastChar = (str: string) => {
+  if (!str) return ''
+  return str.slice(0, -1)
+}
+
+// 延时器
+export const delayTimeClick = () => {
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      resolve(true)
+    }, 25)
+  })
+}

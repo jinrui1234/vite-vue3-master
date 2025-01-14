@@ -5,14 +5,7 @@
 
     <slot></slot>
 
-    <el-table
-      v-if="listShow"
-      :data="list"
-      :scrollbar-always-on="true"
-      max-height="462"
-      empty-text="暂无数据"
-      @selection-change="handleSelectionChange"
-    >
+    <el-table v-if="listShow" :data="list" :scrollbar-always-on="true" max-height="462" empty-text="暂无数据">
       <!-- 标题 -->
       <el-table-column prop="title" :label="`${title}标题`">
         <template #default="scope">
@@ -52,7 +45,7 @@
     </el-table>
 
     <!-- 预案详情 -->
-    <FileDetail :visible="dataMap.visible" :content="dataMap.content" @close="dataMap.visible = false" />
+    <FileDetail :visible="dataMap.visible" :content="dataMap.fileContent" @close="dataMap.visible = false" />
   </div>
 </template>
 
@@ -87,11 +80,11 @@ const prop = defineProps({
   },
 })
 const router = useRouter()
-const emit = defineEmits(['clickCase', 'reSubmit'])
+const emit = defineEmits(['reSubmit'])
 
 const dataMap = reactive({
   visible: false,
-  content: '',
+  fileContent: '',
 })
 
 // 属地案例
@@ -120,6 +113,7 @@ const open = (item: any) => {
     openDetailClick(item)
     return
   }
+  // 关联热点、处置回详情页
   const { case_id, aid, source, pos } = item || {}
   const name = isCaseBool.value ? 'CusDetail' : 'Detail'
 
@@ -141,7 +135,7 @@ const openDetailClick = ({ doc_id }: any) => {
     .then((res: any) => {
       const { code, data, msg } = res || {}
       if (code === 0 && data?.content) {
-        dataMap.content = data?.content
+        dataMap.fileContent = data?.content
         dataMap.visible = true
       } else {
         Message('error', msg)
@@ -150,12 +144,6 @@ const openDetailClick = ({ doc_id }: any) => {
     .catch((error) => {
       console.error(error)
     })
-}
-
-const handleSelectionChange = (list: any) => {
-  if (isCaseBool.value) {
-    emit('clickCase', list)
-  }
 }
 </script>
 

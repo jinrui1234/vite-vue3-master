@@ -1,5 +1,3 @@
-export const PROMPT_URL = 'http://47.100.50.180:80/get_report'
-
 //报告类型
 export const REPORT_TYPE = {
   1: 'Pdf',
@@ -9,21 +7,16 @@ export const REPORT_TYPE = {
 // 模式列表
 export const MODE_LIST = [
   {
-    id: '2',
+    id: 'yqfenxi',
     name: '舆情分析',
     icon: 'assay-icon',
   },
   {
-    id: '1',
+    id: 'qdyanpan',
     name: '前端研判',
     icon: 'judge-icon',
   },
 ]
-
-export const MODE_PROP = {
-  1: 'qdyanpan',
-  2: 'yqfenxi',
-}
 
 // 模型对参
 export const PROMPT_PROP = {
@@ -32,16 +25,19 @@ export const PROMPT_PROP = {
   chuzhijianyi: 'advicePrompt',
   fengxianyujing: 'warningPrompt',
   lishichuli: 'casePrompt',
+  shengchenganli: 'casePromptList',
   huiyingchuzhi: 'filePrompt',
   guanlianredian: 'searchPrompt',
 }
 
+// 影响力
 export const EFFECT_PROP = {
   comment_report: '评论量',
   hot_report: '热度值',
   share_report: '传播量',
 }
 
+// 数据趋势label
 export const ECHART_LABEL = {
   comment: '评论量',
   interact: '互动量',
@@ -53,6 +49,7 @@ export const ECHART_LABEL = {
   hot: '热度值',
 }
 
+// 数据源zh
 export const SOURCE_ZH = {
   weibo: '微博',
   baidu: '百度',
@@ -95,3 +92,6 @@ export const SOURCE_ZH = {
   pszy: '头条号坪山之眼',
   dyxc: '头条号第一现场',
 }
+
+// 模型type白名单
+export const PROMPT_WHITE_TYPE = ['fengxiandengji', 'shengchenganli']

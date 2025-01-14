@@ -36,7 +36,6 @@ const router = createRouter({
 const white = ['/aiReport', '/pdf', '/purePdf', '/agreement']
 let isFirst = true
 router.beforeEach((to, from, next) => {
-  console.log(import.meta.env, import.meta, '111')
   if (isFirst && isMobile()) {
     next(false)
     isFirst = false
